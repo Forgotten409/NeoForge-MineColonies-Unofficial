@@ -1,0 +1,85 @@
+package com.minecolonies.core.recipes;
+
+import com.minecolonies.apiimp.initializer.ModIngredientTypeInitializer;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.StemBlock;
+import net.neoforged.neoforge.common.crafting.ICustomIngredient;
+import net.neoforged.neoforge.common.crafting.IngredientType;
+import net.neoforged.neoforge.common.util.Lazy;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.stream.Stream;
+
+/**
+ * An ingredient that can be used in a vanilla recipe to match plantable items.
+ *
+ * // any plant item
+ * {
+ *     "type": "minecolonies:plant"
+ * }
+ */
+public class PlantIngredient implements ICustomIngredient
+{
+    private static final Lazy<PlantIngredient> INSTANCE = Lazy.of(PlantIngredient::new);
+
+    public static final MapCodec<PlantIngredient> CODEC = MapCodec.unit(INSTANCE);
+
+    private final List<net.minecraft.core.Holder<net.minecraft.world.item.Item>> items;
+
+    private PlantIngredient()
+    {
+        items = BuiltInRegistries.ITEM.stream()
+                .filter(item -> item instanceof final BlockItem block &&
+                        (block.getBlock() instanceof CropBlock || block.getBlock() instanceof StemBlock))
+                // PORT26: builtInRegistryHolder() returns Holder.Reference — witness the
+                // stream type back to Holder<Item> (lists are invariant).
+                .<net.minecraft.core.Holder<net.minecraft.world.item.Item>>map(net.minecraft.world.item.Item::builtInRegistryHolder)
+                .toList();
+    }
+
+    @NotNull
+    public static Ingredient of()
+    {
+        return INSTANCE.get().toVanilla();
+    }
+
+    @Override
+    public boolean test(@Nullable final ItemStack stack)
+    {
+        if (stack == null)
+        {
+            return false;
+        }
+
+        // PORT26: items() returns holders now
+        return items().anyMatch(h -> stack.is(h.value()));
+    }
+
+    @NotNull
+    @Override
+    public Stream<net.minecraft.core.Holder<net.minecraft.world.item.Item>> items()
+    {
+        return items.stream();
+    }
+
+
+    @Override
+    public boolean isSimple()
+    {
+        return true;
+    }
+
+    @NotNull
+    @Override
+    public IngredientType<?> getType()
+    {
+        return ModIngredientTypeInitializer.PLANT_INGREDIENT_TYPE.get();
+    }
+}

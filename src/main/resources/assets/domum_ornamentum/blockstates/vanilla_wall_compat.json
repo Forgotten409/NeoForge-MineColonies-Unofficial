@@ -1,0 +1,102 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "up": "true"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/wall/wall_post_spec"
+      }
+    },
+    {
+      "when": {
+        "north": "low"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/wall/wall_side_spec",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north": "tall"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/wall/wall_side_tall_spec",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "east": "low"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/wall/wall_side_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "east": "tall"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/wall/wall_side_tall_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "south": "low"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/wall/wall_side_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "south": "tall"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/wall/wall_side_tall_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west": "low"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/wall/wall_side_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "west": "tall"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/wall/wall_side_tall_spec",
+        "y": 270
+      }
+    }
+  ]
+}

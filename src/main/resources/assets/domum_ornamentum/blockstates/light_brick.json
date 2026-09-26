@@ -1,0 +1,15 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/allbrick/block_spec"
+      }
+    },
+    {
+      "apply": {
+        "model": "domum_ornamentum:block/allbrick/overlay_light"
+      }
+    }
+  ]
+}

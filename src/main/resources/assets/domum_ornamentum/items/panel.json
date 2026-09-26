@@ -1,0 +1,23 @@
+{
+  "model": {
+    "type": "domum_ornamentum:materially_textured",
+    "model": "domum_ornamentum:item/panel",
+    "variants": {
+      "boss": "domum_ornamentum:block/panel/panel_boss_spec",
+      "coffer": "domum_ornamentum:block/panel/panel_coffer_spec",
+      "full": "domum_ornamentum:block/panel/panel_full_spec",
+      "horizontal_bars": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+      "horizontally_squiggly_striped": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+      "horizontally_striped": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+      "moulding": "domum_ornamentum:block/panel/panel_moulding_spec",
+      "port_manteau": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+      "porthole": "domum_ornamentum:block/panel/panel_porthole_spec",
+      "roundel": "domum_ornamentum:block/panel/panel_roundel_spec",
+      "slot": "domum_ornamentum:block/panel/panel_slot_spec",
+      "vertical_bars": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+      "vertically_squiggly_striped": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+      "vertically_striped": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+      "waffle": "domum_ornamentum:block/panel/panel_waffle_spec"
+    }
+  }
+}

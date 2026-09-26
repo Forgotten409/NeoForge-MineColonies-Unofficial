@@ -1,0 +1,10 @@
+{
+  "model": {
+    "type": "domum_ornamentum:materially_textured",
+    "model": "domum_ornamentum:item/fancy_trapdoors",
+    "variants": {
+      "full": "domum_ornamentum:block/trapdoor/fancy/trapdoor_full_spec",
+      "creeper": "domum_ornamentum:block/trapdoor/fancy/trapdoor_creeper_spec"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "facing=north": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "domum_ornamentum:block/timber_frame/framed_spec"
+    },
+    "facing=east": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "domum_ornamentum:block/timber_frame/framed_spec"
+    },
+    "facing=south": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "domum_ornamentum:block/timber_frame/framed_spec"
+    },
+    "facing=west": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "domum_ornamentum:block/timber_frame/framed_spec"
+    },
+    "facing=up": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "domum_ornamentum:block/timber_frame/framed_spec"
+    },
+    "facing=down": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "domum_ornamentum:block/timber_frame/framed_spec"
+    }
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:entity/chest/normal"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:entity/horse/horse_gray"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:entity/piglin/zombified_piglin"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:gui/builderhut/builder_paper"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:gui/builderhut/builder_paper_sketch_block"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/arrow"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/beetroot"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/bread"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/brick"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/bucket"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/carrot"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/clay_ball"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/diamond_pickaxe"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/egg"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/feather"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/iron_pickaxe"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/netherite_pickaxe"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/rotten_flesh"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/salmon"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/shears"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/string"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/tropical_fish"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecolonies:item/scarecrow"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:entity/chicken/chicken_temperate"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:entity/armorstand/armorstand"
+    }
+  ]
+}

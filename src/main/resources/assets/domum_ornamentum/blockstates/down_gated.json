@@ -1,0 +1,36 @@
+{
+  "variants": {
+    "facing=north": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "domum_ornamentum:block/timber_frame/down_gated_spec",
+      "x": 90
+    },
+    "facing=east": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "domum_ornamentum:block/timber_frame/down_gated_spec",
+      "x": 90,
+      "y": 90
+    },
+    "facing=south": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "domum_ornamentum:block/timber_frame/down_gated_spec",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "domum_ornamentum:block/timber_frame/down_gated_spec",
+      "x": 90,
+      "y": 270
+    },
+    "facing=up": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "domum_ornamentum:block/timber_frame/down_gated_spec"
+    },
+    "facing=down": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "domum_ornamentum:block/timber_frame/down_gated_spec",
+      "x": 180
+    }
+  }
+}

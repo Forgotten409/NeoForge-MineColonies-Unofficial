@@ -1,0 +1,494 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north",
+        "shape": "straight",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/straight_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "shape": "straight",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/straight_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "shape": "inner_left",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "shape": "inner_left",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "shape": "inner_right",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "shape": "inner_right",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "shape": "outer_left",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "shape": "outer_left",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "shape": "outer_right",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "shape": "outer_right",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "shape": "straight",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/straight_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "shape": "straight",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/straight_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "shape": "inner_left",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "shape": "inner_left",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "shape": "inner_right",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "shape": "inner_right",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "shape": "outer_left",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "shape": "outer_left",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "shape": "outer_right",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "shape": "outer_right",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "shape": "straight",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/straight_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "shape": "straight",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/straight_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "shape": "inner_left",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "shape": "inner_left",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "shape": "inner_right",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "shape": "inner_right",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "shape": "outer_left",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "shape": "outer_left",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "shape": "outer_right",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "shape": "outer_right",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "shape": "straight",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/straight_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "shape": "straight",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/straight_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "shape": "inner_left",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "shape": "inner_left",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "shape": "inner_right",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "shape": "inner_right",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/concave_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "shape": "outer_left",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "shape": "outer_left",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "shape": "outer_right",
+        "half": "bottom"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "shape": "outer_right",
+        "half": "top"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/shingle/convex_spec",
+        "x": 180,
+        "y": 270
+      }
+    }
+  ]
+}

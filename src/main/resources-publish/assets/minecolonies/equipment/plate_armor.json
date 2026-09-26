@@ -1,0 +1,13 @@
+{
+  "layers": {
+    "humanoid": [
+      { "texture": "minecolonies:plate_armor", "dyeable": { "color_when_undyed": -6265536 } }
+    ],
+    "humanoid_leggings": [
+      { "texture": "minecolonies:plate_armor", "dyeable": { "color_when_undyed": -6265536 } }
+    ],
+    "humanoid_baby": [
+      { "texture": "minecolonies:plate_armor", "dyeable": { "color_when_undyed": -6265536 } }
+    ]
+  }
+}

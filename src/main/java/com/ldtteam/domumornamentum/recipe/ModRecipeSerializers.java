@@ -1,0 +1,27 @@
+package com.ldtteam.domumornamentum.recipe;
+
+import com.ldtteam.domumornamentum.recipe.architectscutter.ArchitectsCutterRecipe;
+import com.ldtteam.domumornamentum.util.Constants;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+public class ModRecipeSerializers
+{
+    public static final DeferredRegister<RecipeSerializer<?>> SERIALIZERS = DeferredRegister.create(BuiltInRegistries.RECIPE_SERIALIZER, Constants.MOD_ID);
+
+    /**
+     * PORT26: RecipeSerializer is now a record taking the MapCodec and StreamCodec directly.
+     * The old ArchitectsCutterRecipeSerializer class has been removed in its entirety
+     * (see the 26.1 primer: "Serializer classes have been removed in their entirety").
+     */
+    public static DeferredHolder<RecipeSerializer<?>, RecipeSerializer<ArchitectsCutterRecipe>> ARCHITECTS_CUTTER =
+      SERIALIZERS.register("architects_cutter",
+        () -> new RecipeSerializer<>(ArchitectsCutterRecipe.CODEC, ArchitectsCutterRecipe.STREAM_CODEC));
+
+    private ModRecipeSerializers()
+    {
+        throw new IllegalStateException("Can not instantiate an instance of: ModRecipeSerializers. This is a utility class");
+    }
+}

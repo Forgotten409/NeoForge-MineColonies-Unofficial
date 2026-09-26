@@ -1,0 +1,24 @@
+{
+  "variants": {
+    "column=pillar_base": {
+      "type": "domum_ornamentum:materially_textured",
+      "uvlock": true,
+      "model": "domum_ornamentum:block/pillar/blockypillar_pillar_base_spec"
+    },
+    "column=pillar_capital": {
+      "type": "domum_ornamentum:materially_textured",
+      "uvlock": true,
+      "model": "domum_ornamentum:block/pillar/blockypillar_pillar_capital_spec"
+    },
+    "column=pillar_column": {
+      "type": "domum_ornamentum:materially_textured",
+      "uvlock": true,
+      "model": "domum_ornamentum:block/pillar/blockypillar_pillar_column_spec"
+    },
+    "column=full_pillar": {
+      "type": "domum_ornamentum:materially_textured",
+      "uvlock": true,
+      "model": "domum_ornamentum:block/pillar/blockypillar_full_pillar_spec"
+    }
+  }
+}

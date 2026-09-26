@@ -1,0 +1,200 @@
+{
+  "variants": {
+    "facing=east,variant=blockrackemptysingle": {
+      "model": "minecolonies:block/blockrackempty",
+      "y": 0
+    },
+    "facing=east,variant=blockrackfullsingle": {
+      "type": "domum_ornamentum:materially_textured",
+      "y": 0,
+      "models": [
+        {
+          "model": "minecolonies:block/rack/blockrackfull",
+          "weight": 40
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfull_1",
+          "weight": 30
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfull_2",
+          "weight": 30
+        }
+      ]
+    },
+    "facing=east,variant=blockrackempty": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "minecolonies:block/rack/blockrackemptydouble",
+      "y": 0
+    },
+    "facing=east,variant=blockrackfull": {
+      "type": "domum_ornamentum:materially_textured",
+      "y": 0,
+      "models": [
+        {
+          "model": "minecolonies:block/rack/blockrackfulldouble",
+          "weight": 40
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfulldouble_1",
+          "weight": 30
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfulldouble_2",
+          "weight": 30
+        }
+      ]
+    },
+    "facing=south,variant=blockrackemptysingle": {
+      "model": "minecolonies:block/blockrackempty",
+      "y": 90
+    },
+    "facing=south,variant=blockrackfullsingle": {
+      "type": "domum_ornamentum:materially_textured",
+      "y": 90,
+      "models": [
+        {
+          "model": "minecolonies:block/rack/blockrackfull",
+          "weight": 40
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfull_1",
+          "weight": 30
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfull_2",
+          "weight": 30
+        }
+      ]
+    },
+    "facing=south,variant=blockrackempty": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "minecolonies:block/rack/blockrackemptydouble",
+      "y": 90
+    },
+    "facing=south,variant=blockrackfull": {
+      "type": "domum_ornamentum:materially_textured",
+      "y": 90,
+      "models": [
+        {
+          "model": "minecolonies:block/rack/blockrackfulldouble",
+          "weight": 40
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfulldouble_1",
+          "weight": 30
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfulldouble_2",
+          "weight": 30
+        }
+      ]
+    },
+    "facing=west,variant=blockrackemptysingle": {
+      "model": "minecolonies:block/blockrackempty",
+      "y": 180
+    },
+    "facing=west,variant=blockrackfullsingle": {
+      "type": "domum_ornamentum:materially_textured",
+      "y": 180,
+      "models": [
+        {
+          "model": "minecolonies:block/rack/blockrackfull",
+          "weight": 40
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfull_1",
+          "weight": 30
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfull_2",
+          "weight": 30
+        }
+      ]
+    },
+    "facing=west,variant=blockrackempty": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "minecolonies:block/rack/blockrackemptydouble",
+      "y": 180
+    },
+    "facing=west,variant=blockrackfull": {
+      "type": "domum_ornamentum:materially_textured",
+      "y": 180,
+      "models": [
+        {
+          "model": "minecolonies:block/rack/blockrackfulldouble",
+          "weight": 40
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfulldouble_1",
+          "weight": 30
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfulldouble_2",
+          "weight": 30
+        }
+      ]
+    },
+    "facing=north,variant=blockrackemptysingle": {
+      "model": "minecolonies:block/blockrackempty",
+      "y": 270
+    },
+    "facing=north,variant=blockrackfullsingle": {
+      "type": "domum_ornamentum:materially_textured",
+      "y": 270,
+      "models": [
+        {
+          "model": "minecolonies:block/rack/blockrackfull",
+          "weight": 40
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfull_1",
+          "weight": 30
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfull_2",
+          "weight": 30
+        }
+      ]
+    },
+    "facing=north,variant=blockrackempty": {
+      "type": "domum_ornamentum:materially_textured",
+      "model": "minecolonies:block/rack/blockrackemptydouble",
+      "y": 270
+    },
+    "facing=north,variant=blockrackfull": {
+      "type": "domum_ornamentum:materially_textured",
+      "y": 270,
+      "models": [
+        {
+          "model": "minecolonies:block/rack/blockrackfulldouble",
+          "weight": 40
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfulldouble_1",
+          "weight": 30
+        },
+        {
+          "model": "minecolonies:block/rack/blockrackfulldouble_2",
+          "weight": 30
+        }
+      ]
+    },
+    "facing=east,variant=blockrackair": {
+      "model": "minecolonies:block/blockairrack",
+      "y": 180
+    },
+    "facing=south,variant=blockrackair": {
+      "model": "minecolonies:block/blockairrack",
+      "y": 90
+    },
+    "facing=west,variant=blockrackair": {
+      "model": "minecolonies:block/blockairrack",
+      "y": 0
+    },
+    "facing=north,variant=blockrackair": {
+      "model": "minecolonies:block/blockairrack",
+      "y": 270
+    }
+  }
+}

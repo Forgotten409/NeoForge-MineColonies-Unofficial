@@ -1,0 +1,20 @@
+MineColonies community port for Minecraft 26.1.x (NeoForge)
+Copyright (C) 2026 the minecolonies-port contributors.
+
+This project is free software: a derivative work of the GPL-3.0 licensed projects
+MineColonies, Structurize, BlockUI, Domum Ornamentum and Multi-Piston, and is
+redistributed under the terms of the GNU General Public License version 3 as
+published by the Free Software Foundation. See the file LICENSE for the full
+license text and LICENSE-THIRD-PARTY.md for upstream copyright and attribution.
+
+MineColonies is developed by the LDT Team (https://github.com/ldtteam) —
+the original copyright holders of the ported code and content.
+
+All MineColonies art assets, sounds, blueprints, generated data and translations
+are All Rights Reserved and are NOT redistributed with this project; they are
+fetched directly from the official CurseForge distribution by the end user at
+first launch. The same applies to the optional ARR style packs (Byzantine
+Styles Pack, StyleColonies) and TownTalk voices.
+
+Minecraft is a trademark of Mojang Synergies AB. This project is not affiliated
+with Mojang, Microsoft, CurseForge, the NeoForged team or the LDT Team.

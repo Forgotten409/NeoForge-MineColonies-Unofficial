@@ -1,0 +1,7 @@
+{
+  "render_type": "translucent",
+  "parent": "block/fence_post",
+  "textures": {
+    "texture": "block/oak_planks"
+  }
+}

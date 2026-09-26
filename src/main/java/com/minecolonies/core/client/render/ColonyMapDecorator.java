@@ -1,0 +1,68 @@
+package com.minecolonies.core.client.render;
+
+import com.minecolonies.api.colony.ICitizenDataView;
+import com.minecolonies.api.colony.IColonyView;
+import com.minecolonies.api.items.component.ColonyId;
+import com.minecolonies.api.util.Log;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.client.IItemDecorator;
+
+public class ColonyMapDecorator implements IItemDecorator
+{
+    private static IColonyView colonyView;
+    private static boolean     render = false;
+    private        long        lastChange;
+
+    @Override
+    public boolean render(final GuiGraphicsExtractor graphics, final Font font, final ItemStack stack, final int xOffset, final int yOffset)
+    {
+        final long gametime = Minecraft.getInstance().level.getGameTime();
+
+        if (lastChange != gametime && gametime % 40 == 0)
+        {
+            lastChange = gametime;
+            render = !render;
+        }
+
+        if (render)
+        {
+            colonyView = ColonyId.readColonyViewFromItemStack(stack);
+            if (colonyView != null)
+            {
+                try
+                {
+                    int count = 0;
+                    for (final ICitizenDataView view : colonyView.getCitizens().values())
+                    {
+                        if (view.hasBlockingInteractions())
+                        {
+                            count++;
+                        }
+                    }
+
+                    if (count > 0)
+                    {
+                        // PORT26: GuiGraphics -> GuiGraphicsExtractor; the old z-translate
+                        // (pose 500) becomes nextStratum() (next render stratum).
+                        graphics.nextStratum();
+                        graphics.centeredText(font,
+                            Component.literal(count + ""),
+                            xOffset + 15,
+                            yOffset - 2,
+                            0xFF4500 | (255 << 24));
+                        return true;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.getLogger().error("Something went wrong with the colonymap item decorator", e);
+                }
+            }
+        }
+        return false;
+    }
+}

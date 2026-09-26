@@ -1,0 +1,14 @@
+{
+  "model": {
+    "type": "domum_ornamentum:materially_textured",
+    "model": "domum_ornamentum:item/post",
+    "variants": {
+      "plain": "domum_ornamentum:block/post/post_plain_spec",
+      "heavy": "domum_ornamentum:block/post/post_heavy_spec",
+      "turned": "domum_ornamentum:block/post/post_turned_spec",
+      "pinched": "domum_ornamentum:block/post/post_pinched_spec",
+      "double": "domum_ornamentum:block/post/post_double_spec",
+      "quad": "domum_ornamentum:block/post/post_quad_spec"
+    }
+  }
+}

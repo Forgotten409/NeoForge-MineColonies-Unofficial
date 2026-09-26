@@ -1,0 +1,347 @@
+package com.ldtteam.blockui.views;
+
+import com.ldtteam.blockui.BOGuiGraphics;
+import com.ldtteam.blockui.BOScreen;
+import com.ldtteam.blockui.Loader;
+import com.ldtteam.blockui.PaneParams;
+import com.ldtteam.blockui.Parsers;
+import com.mojang.blaze3d.platform.Window;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
+import org.lwjgl.glfw.GLFW;
+
+import java.util.function.ToDoubleBiFunction;
+
+/**
+ * Blockout window, high level root pane.
+ * <p>
+ * PORT26: @OnlyIn removed — NeoForge 26.1 no longer strips members at runtime,
+ * the annotation only triggers a startup warning and does nothing.
+ */
+public class BOWindow extends View
+{
+    /**
+     * The default width.
+     */
+    public static final int DEFAULT_WIDTH = 420;
+
+    /**
+     * The default height.
+     */
+    public static final int DEFAULT_HEIGHT = 240;
+
+    /**
+     * The screen of the window.
+     */
+    protected BOScreen screen;
+
+    /**
+     * Defines if the window should pause the game.
+     */
+    protected boolean windowPausesGame = false;
+
+    /**
+     * Defines if the window should have a lightbox.
+     */
+    protected boolean lightbox = false;
+
+    /**
+     * Render using size or attemp to scale to fullscreen.
+     */
+    protected WindowRenderType windowRenderType = WindowRenderType.OVERSIZED_VANILLA;
+
+    protected Identifier xmlResourceLocation;
+
+    /**
+     * Create a window from an xml file.
+     *
+     * @param resource Identifier to get file from.
+     */
+    public BOWindow(final Identifier resource)
+    {
+        this();
+        this.xmlResourceLocation = resource;
+        Loader.createFromXMLFile(resource, this);
+    }
+
+    /**
+     * Make default sized window.
+     */
+    public BOWindow()
+    {
+        this(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+    }
+
+    /**
+     * Window constructor when there is a fixed Width and Height.
+     *
+     * @param w Width of the window, in pixels.
+     * @param h Height of the window, in pixels.
+     */
+    public BOWindow(final int w, final int h)
+    {
+        super();
+        width = w;
+        height = h;
+
+        screen = new BOScreen(this);
+        window = this;
+    }
+
+    /**
+     * Load the xml parameters.
+     *
+     * @param params xml parameters.
+     */
+    public void loadParams(final PaneParams params)
+    {
+        params.getResource("inherit", r -> Loader.createFromXMLFile(r, this));
+
+        params.applyShorthand("size", Parsers.INT, 2, a -> {
+            width = a.get(0);
+            height = a.get(1);
+        });
+
+        lightbox = params.getBoolean("lightbox", lightbox);
+        windowPausesGame = params.getBoolean("pause", windowPausesGame);
+        windowRenderType = params.getEnum("type", WindowRenderType.class, windowRenderType);
+    }
+
+    @Override
+    public void drawSelf(final BOGuiGraphics ms, final double mx, final double my)
+    {
+        // PORT26: Screen.hasShiftDown()/hasAltDown()/hasControlDown() statics are gone —
+        // key state checks moved to Minecraft instance methods.
+        debugging = mc.hasShiftDown() && mc.hasAltDown() && mc.hasControlDown();
+
+        super.drawSelf(ms, mx, my);
+    }
+
+    /**
+     * Return {@code true} if the 'lightbox' (default dark background) should be displayed.
+     *
+     * @return {@code true} if the 'lightbox' should be displayed.
+     */
+    public boolean hasLightbox()
+    {
+        return lightbox;
+    }
+
+    /**
+     * Return {@code true} if the game should be paused when the Window is displayed.
+     *
+     * @return {@code true} if the game should be paused when the Window is displayed.
+     */
+    public boolean doesWindowPauseGame()
+    {
+        return windowPausesGame;
+    }
+
+    /**
+     * @return {@link WindowRenderType}
+     */
+    public WindowRenderType getRenderType()
+    {
+        return windowRenderType;
+    }
+
+    /**
+     * @return xml defining this window
+     */
+    public Identifier getXmlResourceLocation()
+    {
+        return xmlResourceLocation;
+    }
+
+    /**
+     * Open the window.
+     */
+    public void open()
+    {
+        mc.submit(() -> mc.setScreen(screen));
+    }
+
+    /**
+     * Open the window.
+     */
+    public void openAsLayer()
+    {
+        // PORT26 (verified against 26.1.2 dump): layered GUI screens
+        // (pushGuiLayer/popGuiLayer) were removed with the screen stack rework — falls
+        // back to a regular screen replacement.
+        mc.submit(() -> mc.setScreen(screen));
+    }
+
+    /**
+     * Windows wrap a GuiScreen.
+     *
+     * @return The current GuiScreen.
+     */
+    public BOScreen getScreen()
+    {
+        return screen;
+    }
+
+    /**
+     * Mouse click released handler.
+     * <p>
+     * Currently does nothing.
+     *
+     * @param mx Mouse X position
+     * @param my Mouse Y position
+     */
+    public boolean onMouseReleased(final double mx, final double my)
+    {
+        // Can be overridden
+        return false;
+    }
+
+    /**
+     * Key input handler. Directs keystrokes to focused Pane, or to onUnhandledKeyTyped() if no
+     * Pane handles the keystroke.
+     * <p>
+     * It is advised not to override this method.
+     *
+     * @param ch  Character of key pressed.
+     * @param key Keycode of key pressed.
+     * @return {@code true} if the key was handled by a Pane.
+     */
+    @Override
+    public boolean onKeyTyped(final char ch, final int key)
+    {
+        if (getFocus() != null && getFocus().onKeyTyped(ch, key))
+        {
+            return true;
+        }
+
+        return onUnhandledKeyTyped(ch, key);
+    }
+
+    /**
+     * Key input handler when a focused pane did not handle the key.
+     * <p>
+     * Override this to handle key input at the Window level.
+     *
+     * @param ch  Character of key pressed.
+     * @param key Keycode of key pressed.
+     */
+    public boolean onUnhandledKeyTyped(final int ch, final int key)
+    {
+        if (key == GLFW.GLFW_KEY_ESCAPE)
+        {
+            if (getFocus() != null)
+            {
+                clearFocus();
+            }
+            else
+            {
+                close();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Close the Window.
+     */
+    public void close()
+    {
+        // PORT26 (verified against 26.1.2 dump): popGuiLayer is gone with the layer stack;
+        // only clear the screen if this window's screen is still the active one
+        // (popGuiLayer semantics approximation).
+        final Minecraft mc = Minecraft.getInstance();
+        if (mc.screen == screen)
+        {
+            mc.setScreen(null);
+        }
+    }
+
+    /**
+     * Called when the Window is displayed.
+     */
+    public void onOpened()
+    {
+        // Can be overridden
+    }
+
+    /**
+     * Called when the Window is closed.
+     */
+    public void onClosed()
+    {
+        // Can be overridden
+    }
+
+    /**
+     * Defines how gui should be rendered.
+     *
+     * <p>PORT26: render scale is now expressed in <b>GUI-scaled units</b>, not physical
+     * framebuffer pixels. The 1.21.1 code replaced the vanilla projection with a
+     * framebuffer-sized ortho matrix and multiplied by {@code getGuiScale()} to compensate —
+     * in 26.1.2 rendering goes through the vanilla extractor whose coordinate space already
+     * includes the gui scale. All formulas are therefore relative to
+     * {@code getGuiScaledWidth()/getGuiScaledHeight()}.
+     */
+    public enum WindowRenderType
+    {
+        /**
+         * same relative size as a vanilla gui element of identical size, max gui resolution is 320*240 px, anything above might not be rendered
+         */
+        VANILLA((mcWindow, window) -> 1.0d),
+        /**
+         * scaling to size of the visible gui viewport with no lower limit, max gui resolution is unlimited
+         */
+        FULLSCREEN((mcWindow, window) -> {
+            final double widthScale = ((double) mcWindow.getGuiScaledWidth()) / window.getWidth();
+            final double heightScale = ((double) mcWindow.getGuiScaledHeight()) / window.getHeight();
+
+            return Math.min(widthScale, heightScale);
+        }),
+        /**
+         * scaling to size of the visible gui viewport with lower limit of 320*240 px, max gui resolution is unlimited
+         */
+        FULLSCREEN_VANILLA((mcWindow, window) -> {
+            final double widthScale = Math.max(mcWindow.getGuiScaledWidth(), 320.0d) / window.getWidth();
+            final double heightScale = Math.max(mcWindow.getGuiScaledHeight(), 240.0d) / window.getHeight();
+
+            return Math.min(widthScale, heightScale);
+        }),
+        /**
+         * one monitor pixel per gui unit (crisp 1:1 rendering), max gui resolution is unlimited
+         */
+        FIXED((mcWindow, window) -> 1.0d / Math.max(mcWindow.getGuiScale(), 1.0d)),
+        /**
+         * no upscaling beyond gui-unit 1:1, downscaling down to size of the gui viewport, max gui resolution is unlimited
+         */
+        FIXED_VANILLA((mcWindow, window) -> Math.min(FULLSCREEN_VANILLA.calcRenderScale(mcWindow, window), 1.0d)),
+        /**
+         * integer upscaling up to mc gui scale, downscaling down to size of the gui viewport, max gui resolution is unlimited
+         */
+        OVERSIZED((mcWindow, window) -> {
+            final double fs = FULLSCREEN.calcRenderScale(mcWindow, window);
+            final int userScale = window.mc.options.guiScale().get();
+            return fs < 1.0d ? fs : Math.min(Math.floor(fs), userScale == 0 ? Double.MAX_VALUE : userScale);
+        }),
+        /**
+         * integer upscaling up to mc gui scale, downscaling down to 320*240 px according to size of the gui viewport, max gui resolution is unlimited
+         */
+        OVERSIZED_VANILLA((mcWindow, window) -> {
+            final double fs_vanilla = FULLSCREEN_VANILLA.calcRenderScale(mcWindow, window);
+            final int userScale = window.mc.options.guiScale().get();
+            return fs_vanilla < 1.0d ? fs_vanilla : Math.min(Math.floor(fs_vanilla), userScale == 0 ? Double.MAX_VALUE : userScale);
+        });
+
+        private final ToDoubleBiFunction<Window, BOWindow> renderScaleCalculator;
+
+        private WindowRenderType(final ToDoubleBiFunction<Window, BOWindow> renderScaleCalculator)
+        {
+            this.renderScaleCalculator = renderScaleCalculator;
+        }
+
+        public double calcRenderScale(final Window mcWindow, final BOWindow window)
+        {
+            return renderScaleCalculator.applyAsDouble(mcWindow, window);
+        }
+    }
+}

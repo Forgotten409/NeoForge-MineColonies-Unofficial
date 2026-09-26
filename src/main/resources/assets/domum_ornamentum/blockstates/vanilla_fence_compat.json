@@ -1,0 +1,50 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/fence/fence_post_spec"
+      }
+    },
+    {
+      "when": {
+        "north": "true"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/fence/fence_side_spec",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "east": "true"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/fence/fence_side_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "south": "true"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/fence/fence_side_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west": "true"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "model": "domum_ornamentum:block/fence/fence_side_spec",
+        "y": 270
+      }
+    }
+  ]
+}

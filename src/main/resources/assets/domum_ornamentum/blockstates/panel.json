@@ -1,0 +1,3484 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "false",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "bottom",
+        "open": "true",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "false",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "half": "top",
+        "open": "true",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "x": 270,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "false",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "bottom",
+        "open": "true",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "false",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "x": 180,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "half": "top",
+        "open": "true",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "x": 270,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "false",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "bottom",
+        "open": "true",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "x": 90,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "false",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "x": 180,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "half": "top",
+        "open": "true",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "boss"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_boss_spec",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "coffer"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_coffer_spec",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "full"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_full_spec",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "horizontal_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontal_bars_spec",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "horizontally_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_squiggly_striped_spec",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "horizontally_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_horizontally_striped_spec",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "moulding"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_moulding_spec",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "port_manteau"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_port_manteau_spec",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "porthole"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_porthole_spec",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "roundel"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_roundel_spec",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "slot"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_slot_spec",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "vertical_bars"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertical_bars_spec",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "vertically_squiggly_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_squiggly_striped_spec",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "vertically_striped"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_vertically_striped_spec",
+        "x": 270,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "false",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "bottom",
+        "open": "true",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "false",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "x": 180,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "half": "top",
+        "open": "true",
+        "type": "waffle"
+      },
+      "apply": {
+        "type": "domum_ornamentum:materially_textured",
+        "uvlock": true,
+        "model": "domum_ornamentum:block/panel/panel_waffle_spec",
+        "x": 270,
+        "y": 90
+      }
+    }
+  ]
+}

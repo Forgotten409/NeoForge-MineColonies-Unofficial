@@ -1,0 +1,78 @@
+# ============================================================================
+# MineColonies 26.1.2 port — .gitignore
+#
+# THE MOST IMPORTANT RULE OF THIS REPOSITORY:
+#   MineColonies art assets / data / blueprints are ARR (All Rights Reserved,
+#   see LICENSE-THIRD-PARTY.md and src/main/resources/assets/minecolonies/LICENSE
+#   in the upstream repo). They must NEVER be committed or pushed to GitHub.
+#   Players receive them at first run straight from the official CurseForge CDN;
+#   for local dev restore them with:  node tools/restore-dev-assets.mjs
+#
+#   Verify before every push:  node tools/check-arr-clean.mjs
+# ============================================================================
+
+# --- ARR content (never leaves this machine) --------------------------------
+src/main/resources/assets/minecolonies/
+src/main/resources/assets/minecraft/textures/
+src/main/resources/blueprints/
+src/main/resources/data/minecolonies/
+src/main/resources/data/c/
+src/main/resources/data/dynamictrees/
+src/main/resources/data/neoforge/
+src/main/resources/minecolonies.png
+# dev-only marker that says "ARR art is bundled in this jar" — only valid
+# together with the restored dev assets above (see tools/restore-dev-assets.mjs)
+src/main/resources/portassets/bundled-flag.json
+
+# --- Maintainer playbook (local-only — never pushed) ---------------------------
+# Publishing / testing plans are for the maintainer, not for the public repo.
+# The files stay on disk; git never picks them up (README links to none of them).
+/docs/
+/CURSEFORGE-SUBMISSION.md
+# prefer the port log (PORTING.md) local-only too? uncomment:
+# /PORTING.md
+
+# --- Gradle / build ----------------------------------------------------------
+# (build outputs at any level; the ROOT game dirs further below are anchored
+#  with a leading "/" so that a bare "data/" can never also match
+#  src/main/resources/data/ — the GPL datapack content MUST be tracked)
+.gradle/
+build/
+out/
+classes/
+
+# --- IDE ---------------------------------------------------------------------
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+nbproject/private/
+
+# --- Runs (NeoForge dev runs, game dirs — ROOT-LEVEL ONLY) --------------------
+# leading "/" anchors these to the project root; without it a bare "data/"
+# would also ignore src/main/resources/data/ (GPL content!) — that bug silently
+# dropped ~361 GPL data files from git on Windows machines.
+/run/
+/runs/
+/run-client/
+/run-server/
+/data/
+/port-assets/
+
+# --- Local third-party mod jars (DynamicTrees, JourneyMap, …) ----------------
+# compat-test jars you download yourself from CurseForge. NEVER push them:
+# redistributing third-party mods is not allowed. The build fetches them from
+# CurseMaven automatically — libs/ is only an offline fallback (see build.gradle).
+/libs/
+
+# --- OS / editor junk ---------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~

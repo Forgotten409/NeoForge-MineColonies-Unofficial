@@ -1,0 +1,13 @@
+{
+  "layers": {
+    "humanoid": [
+      { "texture": "minecolonies:pirate2", "dyeable": { "color_when_undyed": -6265536 } }
+    ],
+    "humanoid_leggings": [
+      { "texture": "minecolonies:pirate2", "dyeable": { "color_when_undyed": -6265536 } }
+    ],
+    "humanoid_baby": [
+      { "texture": "minecolonies:pirate2", "dyeable": { "color_when_undyed": -6265536 } }
+    ]
+  }
+}

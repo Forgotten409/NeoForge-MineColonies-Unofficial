@@ -1,0 +1,54 @@
+package com.minecolonies.apiimp.initializer;
+
+import com.minecolonies.api.particles.ModSimpleParticleType;
+import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.core.client.particles.SleepingParticle;
+import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.registries.RegisterEvent;
+
+/**
+ * Initializes the particle type.
+ */
+public class ModParticleTypesInitializer
+{
+    /**
+     * Particle type
+     */
+    // PORT26: SimpleParticleType's ctor is protected now — vanilla instantiates it only
+    // from its own package, so we go through a tiny public subclass.
+    public static final SimpleParticleType SLEEPINGPARTICLE_TYPE = new ModSimpleParticleType(true);
+    public static final Identifier  SLEEPING_TEXTURE      = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "particle/sleeping");
+
+    /**
+     * Register the particle
+     */
+    @EventBusSubscriber(modid = Constants.MOD_ID)
+    public static class CommonRegistration
+    {
+        @SubscribeEvent
+        public static void registerParticles(final RegisterEvent event)
+        {
+            event.register(Registries.PARTICLE_TYPE, SLEEPING_TEXTURE, () -> SLEEPINGPARTICLE_TYPE);
+        }
+    }
+
+    /**
+     * Register the client side factory
+     */
+    @EventBusSubscriber(modid = Constants.MOD_ID, value = Dist.CLIENT)
+    public static class ClientRegistration
+    {
+        @SubscribeEvent
+        public static void registerParticleFactories(RegisterParticleProvidersEvent event)
+        {
+            event.registerSpriteSet(SLEEPINGPARTICLE_TYPE, SleepingParticle.Factory::new);
+        }
+    }
+}

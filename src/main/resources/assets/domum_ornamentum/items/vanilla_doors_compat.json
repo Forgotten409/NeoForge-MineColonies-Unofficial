@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "domum_ornamentum:materially_textured",
+    "model": "domum_ornamentum:item/vanilla_doors_compat",
+    "variants": {
+      "full": "domum_ornamentum:item/door/door_full_spec",
+      "port_manteau": "domum_ornamentum:item/door/door_port_manteau_spec",
+      "vertically_striped": "domum_ornamentum:item/door/door_vertically_striped_spec",
+      "waffle": "domum_ornamentum:item/door/door_waffle_spec"
+    }
+  }
+}

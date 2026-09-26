@@ -1,0 +1,52 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="${mod_license}"
+issueTrackerURL=""
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="${mod_author}"
+description='''${mod_description}'''
+
+[[dependencies.${mod_id}]]
+    modId="neoforge"
+    type="required"
+    versionRange="${neo_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    type="required"
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="jei"
+    type="optional"
+    versionRange="[29,)"
+    ordering="AFTER"
+    side="BOTH"
+
+# PORT26-compat: JourneyMap client plugin (colony borders, deathpoints, citizen radar)
+[[dependencies.${mod_id}]]
+    modId="journeymap"
+    type="optional"
+    versionRange="[6.0,)"
+    ordering="AFTER"
+    side="CLIENT"
+
+# PORT26-compat: Dynamic Trees lumberjack integration (tree family chopping/propagation)
+[[dependencies.${mod_id}]]
+    modId="dynamictrees"
+    type="optional"
+    versionRange="[1.8,)"
+    ordering="AFTER"
+    side="BOTH"
+
+# Access transformer (same AT format as NeoForge 1.21+)
+[[accessTransformers]]
+    file="META-INF/accesstransformer.cfg"
