@@ -133,12 +133,17 @@ from `maven.blamejared.com`, the full Dynamic Trees and JourneyMap mods from
 No manual downloads are needed; a local `libs/` folder with your own jars is
 supported as an offline fallback and is gitignored.
 
-The cloned tree is ARR-free on purpose (see below): the dev jar builds fine
-and the game provisions external assets at first run. To re-create the
-maintainer's full local dev layout (ARR art bundled for offline testing):
+The cloned tree is ARR-free on purpose (see below): the dev jar builds fine and
+the game provisions external assets at first run — **`./gradlew runClient` on a fresh
+clone works out of the box**: the port-authored 26.1 item definitions, egg art,
+equipment models and novel lang keys ride along on the dev classpath (via
+`src/main/resources-publish`), and the ARR art + data arrive through the first-run
+download screen, exactly like the published jar. For fully-offline dev — or to
+re-create the maintainer's bundled local dev layout — additionally run:
 
 ```bash
-node tools/restore-dev-assets.mjs   # downloads the official jar from the CurseForge CDN
+node tools/restore-dev-assets.mjs --bundled-flag   # download the official jar, convert 1.21.1→26.1, bundle locally
+node tools/restore-dev-assets.mjs --clean          # remove the local ARR assets again
 ```
 
 For the novel-language extraction and TownTalk tooling see `tools/` in this repo.
@@ -157,9 +162,10 @@ If ARR content ever made it into the git **history** (e.g. from an earlier
 push), the simple fix is to delete the GitHub repository and re-push from a
 clean tree, or rewrite the history with `git filter-repo`.
 
-Fresh clones build out of the box, and `tools/restore-dev-assets.mjs` can
-additionally re-create the maintainer's local dev layout (it downloads the
-official asset jar from the CurseForge CDN).
+`tools/restore-dev-assets.mjs` can
+additionally re-create the maintainer's local dev layout (it downloads the official
+asset jar from the CurseForge CDN and converts it to the 26.1 formats — fully usable
+offline with `--bundled-flag`).
 
 ## License
 

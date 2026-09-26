@@ -45,26 +45,15 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 //minecraft.accessTransformers.file rootProject.file('src/main/resources/META-INF/accesstransformer.cfg')
 //minecraft.accessTransformers.entry public net.minecraft.client.Minecraft textureManager # textureManager
-
+sourceSets.main.resources.srcDir 'src/main/resources-publish'
 // Default run configurations.
 // These can be tweaked, removed, or duplicated as needed.
 runs {
     // applies to all the run configs below
     configureEach {
-        // Recommended logging data for a userdev environment
-        // The markers can be added/remove as needed separated by commas.
-        // "SCAN": For mods scan.
-        // "REGISTRIES": For firing of registry events.
-        // "REGISTRYDUMP": For getting the contents of all registries.
         systemProperty 'forge.logging.markers', 'REGISTRIES'
-
-        // Recommended logging level for the console
-        // You can set various levels here.
-        // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
         systemProperty 'forge.logging.console.level', 'debug'
-
         workingDirectory project.layout.projectDirectory.dir('run').dir(name)
-
         modSource project.sourceSets.main
     }
 
@@ -127,6 +116,7 @@ dependencies {
 // When "copyIdeResources" is enabled, this will also run before the game launches in IDE environments.
 // See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
 tasks.withType(ProcessResources).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     var replaceProperties = [
             minecraft_version      : minecraft_version,
             minecraft_version_range: minecraft_version_range,
@@ -197,6 +187,13 @@ tasks.register('publishJar', Jar) {
     dependsOn 'extractNovelLang'
     archiveClassifier = 'publish'
     destinationDirectory = layout.buildDirectory.dir('publish-libs')
+
+    // PORT26-dev-fix: sourceSets.main.output now ALSO contains resources-publish (see
+    // the sourceSets.main.resources.srcDir above), and block (3) below re-includes the
+    // very same files from 'src/main/resources-publish' — identical content, so the
+    // duplicate entries are harmless; EXCLUDE (first-wins) keeps the jar deterministic
+    // and identical to what this task produced before the srcDir change.
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     // 1) classes + META-INF (expanded neoforge.mods.toml, accesstransformer.cfg) + ALL
     //    GPL-licensed upstream content (structurize / domum_ornamentum / blockui /
@@ -280,7 +277,7 @@ tasks.register('extractNovelLang', Exec) {
         if (!novelLangScript.isFile()) {
             logger.lifecycle('extractNovelLang: tools/extract-novel-lang.mjs not present — this is not the '
                     + 'maintainer environment. publishJar will use the COMMITTED src/main/resources-publish '
-                    + 'output as-is. (Regeneration is a maintainer-only workflow; see docs/PUBLISHING.md.)')
+                    + 'output as-is. (Regeneration is a maintainer-only workflow — see tools/extract-novel-lang.mjs.)')
             return false
         }
         if (!langRefRoots.any { it.isDirectory() }) {
