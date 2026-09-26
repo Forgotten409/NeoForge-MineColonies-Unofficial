@@ -117,7 +117,7 @@ node tools/towntalk-patch.mjs towntalk-1.2.0-1.21.1.jar
 
 ## Building from source
 
-Requirements: **JDK 21+** (NeoForge Gradle toolchain is fetched automatically).
+Requirements: **JDK 25+** (NeoForge Gradle toolchain is fetched automatically).
 
 ```bash
 git clone https://github.com/Forgotten409/NeoForge-MineColonies-Unofficial.git

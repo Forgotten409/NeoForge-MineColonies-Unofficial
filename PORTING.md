@@ -743,7 +743,3 @@ Reference sources cloned at: `/home/z/my-project/portsrc/` (283 MB total, 2604 j
 - `RenderSystem.setShader*/blend/logicOp/recordRenderCall` GONE
 - AT pattern: `[[accessTransformers]]` in mods.toml + `minecraft.accessTransformers.file` in build.gradle
 
-## Sandbox Constraints
-- No Java 25 / gradle in the sandbox — the user compiles and runs locally.
-- Verdicts come only from user runtime logs.
-
