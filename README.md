@@ -121,7 +121,7 @@ Requirements: **JDK 25+** (NeoForge Gradle toolchain is fetched automatically).
 
 ```bash
 git clone https://github.com/Forgotten409/NeoForge-MineColonies-Unofficial.git
-cd minecolonies-port
+cd NeoForge-MineColonies-Unofficial
 ./gradlew build          # dev jar  -> build/libs/
 ./gradlew publishJar     # publish jar (ARR-free) — the only jar you may distribute
 ```
