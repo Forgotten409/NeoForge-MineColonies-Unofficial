@@ -1,4 +1,4 @@
-# MineColonies — Community Port for Minecraft 26.1.x (NeoForge)
+# MineColonies — Community Port for Minecraft 26.1.x and newer(NeoForge)
 
 > An unofficial, GPL-3.0 licensed community port of [MineColonies](https://github.com/ldtteam/minecolonies)
 > (and its companion libraries) from Minecraft **1.21.1 / NeoForge 21.1.x** to
