@@ -18,7 +18,7 @@ the community. For the official mod, bugs and feature requests, please use the
 
 ## Status
 
-Current port release: **`1.1.1399-port26.1.2-0.5.2`** (see `gradle.properties`).
+Current port release: **`1.1.1399-port26.1.2-0.5.4`** (see `gradle.properties`).
 
 | Component | Base (1.21.1) | Port target |
 |---|---|---|
