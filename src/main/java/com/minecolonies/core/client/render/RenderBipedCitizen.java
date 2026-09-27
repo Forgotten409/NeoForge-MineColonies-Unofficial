@@ -9,6 +9,7 @@ import com.minecolonies.api.colony.ICitizenDataView;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.apiimp.initializer.ModModelTypeInitializer;
 import com.minecolonies.core.client.render.worldevent.RenderTypes;
+import com.ldtteam.structurize.util.ShaderPackCompat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.minecolonies.core.event.ClientRegistryHandler; // PORT26 FIX (no faces): bake our 128x64 citizen layer
@@ -242,6 +243,17 @@ public class RenderBipedCitizen extends MobRenderer<AbstractEntityCitizen, Citiz
     {
         super.submitNameDisplay(state, poseStack, submitNodeCollector, camera);
 
+        // PORT26 (0.4.3): Iris renders all entities a second time from the sun's viewpoint
+        // to build the shadow map and flushes the shared buffer source at the end of that
+        // pass — mod-pipeline geometry submitted here would be drawn inside the shadow pass
+        // (log: "Missing program minecolonies:pipeline/world_entity_icon in override list",
+        // drawn with the shadow projection into the main color target). The vanilla name tag
+        // above is handled by Iris itself; only the custom icon needs the guard.
+        if (ShaderPackCompat.isRenderingShadowPass())
+        {
+            return;
+        }
+
         if (state.showStatusIcon && state.nameTag != null && state.nameTagAttachment != null && state.distanceToCameraSq <= 4096.0D)
         {
             poseStack.pushPose();
@@ -266,8 +278,12 @@ public class RenderBipedCitizen extends MobRenderer<AbstractEntityCitizen, Citiz
       final float x, final float y, final float z,
       final float u, final float v)
     {
-        // PORT26: the icon render type uses the POSITION_TEX format (position + uv only).
-        buffer.addVertex(pose, x, y, z).setUv(u, v);
+        // PORT26 FIX v5 (0.4.5): the icon render type is now vanilla textSeeThrough
+        // (see the note in submitNameDisplay / worldevent RenderTypes) whose vertex
+        // format is POSITION_COLOR_TEX_LIGHTMAP — each vertex carries a color and a
+        // lightmap coordinate in addition to position + uv. White + fullbright keeps
+        // the icon unlit and fully visible exactly like the old POSITION_TEX type.
+        buffer.addVertex(pose, x, y, z).setColor(-1).setUv(u, v).setLight(15728880);
     }
 
     @NotNull

@@ -23,8 +23,10 @@ import java.util.List;
  * Builds retextured {@link BakedQuad}s — PORT 26.1.2 rewrite of the 1.21.1
  * {@code RetexturedBakedModelBuilder} + {@code ModelSpriteQuadTransformer}.
  *
- * <p>26.1.2 {@link BakedQuad} is a record: {@code (position0..3, packedUV0..3, direction, MaterialInfo)}.
- * Retexturing a quad means:
+ * <p>26.1.2 {@link BakedQuad} is a record: {@code (position0..3, packedUV0..3, direction, MaterialInfo)}
+ * — plus the two NeoForge components {@code bakedNormals}/{@code bakedColors} (per-vertex normals
+ * and colors filled by the patched FaceBakery; see the note at {@link #retextureQuad}), which the
+ * retextured quad inherits from its source. Retexturing a quad means:
  * <ol>
  *   <li>keeping positions + direction,</li>
  *   <li>remapping each vertex UV from the placeholder sprite's atlas window into the target
@@ -175,6 +177,24 @@ public final class RetexturedQuadBuilder
           targetQuad.materialInfo().shade(),
           targetQuad.materialInfo().lightEmission());
 
+        // PORT26 FIX v5 (0.4.5, GUI items pale/flat with Sodium installed): the retextured
+        // quad MUST carry the NeoForge per-vertex normals and colors of the SOURCE quad.
+        //
+        // NeoForge 26.1 extends the vanilla BakedQuad record with two extra components —
+        // BakedNormals and BakedColors — which the vanilla FaceBakery fills for every
+        // normally-baked quad. Vanilla's VertexConsumer#putBakedQuad falls back to the
+        // quad's direction for UNSPECIFIED normals, but Sodium's fast path
+        // (BakedModelEncoder.writeQuadVertices, via BufferBuilderMixin#putBakedQuad)
+        // resolves the per-vertex normal through BakedQuadView#getAccurateNormal: for
+        // UNSPECIFIED it yields the sentinel -1 (NOT the face-normal fallback) which is
+        // written as a ~zero byte normal → item.vsh's minecraft_mix_light dots it with
+        // both GUI lights at ~0 → every face gets the uniform 0.4 ambient term → the
+        // "pale, no shadows, no contrast" DO item icons whenever Sodium is installed
+        // (Iris itself is uninvolved — it just always ships alongside). The same fast
+        // path also multiplies the vertex color with BakedColors, so an accidentally
+        // non-white default would tint the item. The retextured quad keeps the source
+        // quad's positions 1:1, so its normals and colors remain exactly correct —
+        // pass them through instead of dropping them to UNSPECIFIED/DEFAULT.
         return new BakedQuad(
           quad.position0(), quad.position1(), quad.position2(), quad.position3(),
           remapUV(quad.packedUV0(), sourceSprite, targetSprite),
@@ -182,7 +202,9 @@ public final class RetexturedQuadBuilder
           remapUV(quad.packedUV2(), sourceSprite, targetSprite),
           remapUV(quad.packedUV3(), sourceSprite, targetSprite),
           quad.direction(),
-          newInfo);
+          newInfo,
+          quad.bakedNormals(),
+          quad.bakedColors());
     }
 
     @Nullable

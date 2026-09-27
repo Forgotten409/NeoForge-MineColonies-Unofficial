@@ -111,7 +111,9 @@ public class PathfindingDebugRenderer
             final float pdy = n.parent.y - n.y + 0.125f;
             final float pdz = n.parent.z - n.z + 0.125f;
 
-            final VertexConsumer buffer = ctx.bufferSource.getBuffer(WorldRenderMacros.LINES);
+            // PORT26-compat (Iris & shader packs): routes to the vanilla lines()
+            // fallback (pair-adapted normals) when a shader pack is active.
+            final VertexConsumer buffer = WorldRenderMacros.getLinesBuffer(ctx.bufferSource);
 
             buffer.addVertex(lineMatrix, 0.5f, 0.5f, 0.5f).setColor(0.75F, 0.75F, 0.75F, 1.0F);
             buffer.addVertex(lineMatrix, pdx / 0.25f, pdy / 0.25f, pdz / 0.25f).setColor(0.75F, 0.75F, 0.75F, 1.0F);

@@ -57,7 +57,6 @@
   "portassets.screen.title": "Port MineColonies — zasoby zewnętrzne",
   "portassets.screen.download": "Pobierz teraz",
   "portassets.screen.manual": "Instalacja ręczna",
-  "portassets.screen.skip": "Pomiń (brakujące tekstury)",
   "portassets.screen.back": "Wróć",
   "portassets.screen.status.starting": "Rozpoczynanie pobierania…",
   "portassets.screen.status.done": "Gotowe — przeładowywanie paczek zasobów…",
@@ -96,7 +95,7 @@
   "portassets.status.converting": "Konwersja do formatów 26.1… %d plików",
   "portassets.status.ready": "%s gotowe.",
   "portassets.screen.explain1": "[Pobierz teraz] pobiera wymienione wyżej pakiety do <katalog-gry>/port-assets/ i aktywuje je od razu — bez restartu gry.",
-  "portassets.screen.explain2": "[Instalacja ręczna] pokazuje instrukcje offline; [Pomiń] uruchamia grę bez grafiki (brak tekstur).",
+  "portassets.screen.explain2": "Brak internetu albo pobieranie ciągle pada? [Instalacja ręczna] pokazuje sposób offline. Mały link pod przyciskami uruchamia grę bez grafiki (brak tekstur — bez crasha).",
   "portassets.screen.status.active": "Assety aktywne — restart niepotrzebny.",
   "portassets.screen.status.restart": "Pobrano — zrestartuj grę, aby aktywować pakiety.",
   "portassets.screen.what1": "Ten port nie zawiera oryginalnych grafik/danych MineColonies (licencja ARR).",
@@ -106,5 +105,13 @@
   "portassets.screen.status.stylesactive": "Assety i style budowania aktywne — restart niepotrzebny.",
   "portassets.screen.status.stylesrestart": "Pakiety aktywne — style budowania pojawią się po restarcie gry.",
   "portassets.screen.what.short": "Port bez oryginalnej grafiki ARR — przyciski poniżej pobiorą ją:",
-  "portassets.screen.explain.short": "[Pobierz teraz] pobiera pakiety z listy powyżej i aktywuje je od razu — bez restartu."
+  "portassets.screen.explain.short": "[Pobierz teraz] pobiera pakiety z listy powyżej i aktywuje je od razu — bez restartu.",
+  "portassets.screen.skip.link": "Zagraj bez grafiki (niezalecane)",
+  "portassets.screen.skip.tooltip": "Gra działa, ale bloki i przedmioty MineColonies mają brakujące tekstury, a style budowania są niedostępne.\\nTen ekran wróci przy każdym uruchomieniu, dopóki assety nie zostaną pobrane.",
+  "portassets.screen.download.tooltip": "Pobiera pakiety z listy powyżej z oficjalnych stron CurseForge do <katalog-gry>/port-assets/ i aktywuje je od razu — bez restartu gry.",
+  "portassets.screen.continue": "Dalej",
+  "portassets.error.offline": "Brak internetu lub błąd sieci — sprawdź połączenie i kliknij Ponów.",
+  "portassets.error.stall": "Połączenie zerwało się w trakcie pobierania (brak danych przez 30 s) — kliknij Ponów.",
+  "portassets.error.http": "Serwer pobrań odpowiedział: %s — spróbuj później albo użyj [Instalacji ręcznej].",
+  "portassets.error.interrupted": "Pobieranie zostało przerwane."
 }

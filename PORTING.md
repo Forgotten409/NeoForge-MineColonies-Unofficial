@@ -3,10 +3,10 @@
 ## Source Baseline (locked)
 | Mod | Version | Source | Java files |
 |---|---|---|---|
-| minecolonies | 1.1.1374-1.21.1-snapshot | github.com/ldtteam/minecolonies tag v1.21.1-1.1.1374-snapshot | 2060 |
-| structurize | 1.0.832-1.21.1 | github.com/ldtteam/structurize tag v1.21.1-1.0.832 | 194 |
-| blockui | 1.0.211-1.21.1-snapshot | github.com/ldtteam/blockui tag v1.21.1-1.0.211-snapshot | 109 |
-| domum-ornamentum | 1.0.234-snapshot | github.com/ldtteam/domum-ornamentum tag v1.21.1-1.0.234-snapshot | 231 |
+| minecolonies | 1.1.1399-1.21.1-snapshot | github.com/ldtteam/minecolonies tag v1.21.1-1.1.1399-snapshot | 2061 |
+| structurize | 1.0.833-1.21.1-snapshot | github.com/ldtteam/structurize tag v1.21.1-1.0.833-snapshot | 194 |
+| blockui | 1.0.212-1.21.1-snapshot | github.com/ldtteam/blockui tag v1.21.1-1.0.212-snapshot | 109 |
+| domum-ornamentum | 1.0.236-snapshot | github.com/ldtteam/domum-ornamentum tag v1.21.1-1.0.236-snapshot | 231 |
 | multipiston | 1.2.58-1.21.1 | github.com/ldtteam/Piston-Unlimited branch release/1.21.1 | 8 |
 | towntalk | 1.2.0 | github.com/ldtteam/towntalk branch version/1.21 | 2 (+ sound assets) |
 
@@ -89,8 +89,8 @@ Reference sources cloned at: `/home/z/my-project/portsrc/` (283 MB total, 2604 j
     stack; the 1.21.1 version compared pose depth).
   - Layered screens (`openAsLayer`) fall back to regular screen replacement —
     pushGuiLayer/popGuiLayer were removed in 26.1.2.
-  Status: runtime-verified by user (GUI opens/renders/interacts, skins, tooltips,
-  scrolling lists); log is clean apart from the intended test-case lines above.
+    Status: runtime-verified by user (GUI opens/renders/interacts, skins, tooltips,
+    scrolling lists); log is clean apart from the intended test-case lines above.
 - **PHASE 2 — domum-ornamentum** (231 files): decorative blocks. Merged as `com.ldtteam.domumornamentum`.
   Status: **main code ported** (compilation-iteration 1 fixes applied); model system rewritten for
   the 26.1.2 pipeline; **datagen (87 providers) moved to `src/datagen/java` pending rewrite**
@@ -141,41 +141,41 @@ Reference sources cloned at: `/home/z/my-project/portsrc/` (283 MB total, 2604 j
     covers all default/quests/tag.item keys (1131/1132) + items/blocks/GUI/advancements;
   - `LanguageHandler.load` hardened: null-safe fallback chain locale → en_us → default.json →
     warn+skip (upstream code passed a null stream straight into `new InputStreamReader`).
-  Second runtime crash fixed (13.09 00:30): `ConfigTracker` "config file conflict on
-  minecolonies-client.toml" — both merged bootstraps (structurize + minecolonies) built
-  `Configurations` on the ONE shared ModContainer, and the tracker derives the default file name
-  from the mod id. Fix: `Configurations` gained an explicit config-namespace constructor
-  (`ConfigTracker.registerConfig(type, spec, container, fileName)`); structurize registers
-  `structurize-client/-server.toml`, minecolonies `minecolonies-client/-server/-common.toml` —
-  the ORIGINAL file names, so existing 1.21.1 config files carry over 1:1 (BackUpHelper's
-  hardcoded `serverconfig/minecolonies-server.toml` still matches). Config screen extension
-  point is registered twice (identical value, Map.put overwrite — harmless).
-  Third runtime crash fixed (13.09 00:42): EventBus 8.0.5 rejects listeners on ABSTRACT event
-  types — 26.1.2 split `RenderLevelStageEvent` into an abstract base + 8 stage sub-classes
-  (AfterSky/AfterOpaqueBlocks/AfterOpaqueFeatures/AfterTranslucentFeatures/AfterTranslucentBlocks/
-  AfterTranslucentParticles/AfterWeather/AfterLevel). `ClientEventHandler.renderWorldLastEvent`
-  still used the abstract type. Fix: split into two listeners on the sub-events
-  `WorldEventContext.renderWithinContext` actually acts on — `AfterOpaqueFeatures`
-  (STAGE_FOR_LINES: borders, blueprints, waypoints, patrol points, rally banners, pathfinding
-  debug, boxes, overlays, highlights) and `AfterTranslucentBlocks` (colony sign hover) —
-  mirroring structurize's `ClientEventSubscriber`. Full-port sweep (script
-  `work/scripts/sweep_abstract_listeners.py`): 129 `@SubscribeEvent` methods, **0** abstract-param
-  listeners remain; all `addListener` uses are concrete (reload-listener registrations don't apply).
-  Also fixed a fallback bug in the batch-14 `LanguageHandler` hardening: locale `null`
-  (Minecraft.getInstance() does not exist during mod construction) skipped the en_us fallback —
-  restored the original "miss → en_us" behavior (blockui/structurize/minecolonies all load their
-  en_us.json during construction now; the two WARN lines disappear).
-  Fourth runtime crash fixed (13.09 00:53): RegisterEvent phase — `NPE: "Block id not set"`
-  (BlockBehaviour ctor → Properties.effectiveDrops → Objects.requireNonNull(id)). MC 26.1.2
-  requires the registry id on `BlockBehaviour.Properties` (`setId(ResourceKey<Block>)`) BEFORE
-  the Block constructor runs, and likewise on `Item.Properties` (`setId(ResourceKey<Item>)`;
-  the Item ctor reads descriptionId + data-component initializer from it — "Item id not set").
-  Vanilla gets this via `Blocks.register(id, props)` and NeoForge's `DeferredRegister` injects
-  it in its factory overloads — structurize/multipiston/domum were already on that flow; the
-  minecolonies core "direct registration" style (`new XBlock().registerBlock(registry)` during
-  RegisterEvent) was not. Java forbids instance-member references in explicit super() args
-  (JLS 8.8.7.1 — javac "cannot reference X before supertype constructor has been called"), so
-  a central `getRegistryName()` injection is impossible; the fix threads names as literals:
+    Second runtime crash fixed (13.09 00:30): `ConfigTracker` "config file conflict on
+    minecolonies-client.toml" — both merged bootstraps (structurize + minecolonies) built
+    `Configurations` on the ONE shared ModContainer, and the tracker derives the default file name
+    from the mod id. Fix: `Configurations` gained an explicit config-namespace constructor
+    (`ConfigTracker.registerConfig(type, spec, container, fileName)`); structurize registers
+    `structurize-client/-server.toml`, minecolonies `minecolonies-client/-server/-common.toml` —
+    the ORIGINAL file names, so existing 1.21.1 config files carry over 1:1 (BackUpHelper's
+    hardcoded `serverconfig/minecolonies-server.toml` still matches). Config screen extension
+    point is registered twice (identical value, Map.put overwrite — harmless).
+    Third runtime crash fixed (13.09 00:42): EventBus 8.0.5 rejects listeners on ABSTRACT event
+    types — 26.1.2 split `RenderLevelStageEvent` into an abstract base + 8 stage sub-classes
+    (AfterSky/AfterOpaqueBlocks/AfterOpaqueFeatures/AfterTranslucentFeatures/AfterTranslucentBlocks/
+    AfterTranslucentParticles/AfterWeather/AfterLevel). `ClientEventHandler.renderWorldLastEvent`
+    still used the abstract type. Fix: split into two listeners on the sub-events
+    `WorldEventContext.renderWithinContext` actually acts on — `AfterOpaqueFeatures`
+    (STAGE_FOR_LINES: borders, blueprints, waypoints, patrol points, rally banners, pathfinding
+    debug, boxes, overlays, highlights) and `AfterTranslucentBlocks` (colony sign hover) —
+    mirroring structurize's `ClientEventSubscriber`. Full-port sweep (script
+    `work/scripts/sweep_abstract_listeners.py`): 129 `@SubscribeEvent` methods, **0** abstract-param
+    listeners remain; all `addListener` uses are concrete (reload-listener registrations don't apply).
+    Also fixed a fallback bug in the batch-14 `LanguageHandler` hardening: locale `null`
+    (Minecraft.getInstance() does not exist during mod construction) skipped the en_us fallback —
+    restored the original "miss → en_us" behavior (blockui/structurize/minecolonies all load their
+    en_us.json during construction now; the two WARN lines disappear).
+    Fourth runtime crash fixed (13.09 00:53): RegisterEvent phase — `NPE: "Block id not set"`
+    (BlockBehaviour ctor → Properties.effectiveDrops → Objects.requireNonNull(id)). MC 26.1.2
+    requires the registry id on `BlockBehaviour.Properties` (`setId(ResourceKey<Block>)`) BEFORE
+    the Block constructor runs, and likewise on `Item.Properties` (`setId(ResourceKey<Item>)`;
+    the Item ctor reads descriptionId + data-component initializer from it — "Item id not set").
+    Vanilla gets this via `Blocks.register(id, props)` and NeoForge's `DeferredRegister` injects
+    it in its factory overloads — structurize/multipiston/domum were already on that flow; the
+    minecolonies core "direct registration" style (`new XBlock().registerBlock(registry)` during
+    RegisterEvent) was not. Java forbids instance-member references in explicit super() args
+    (JLS 8.8.7.1 — javac "cannot reference X before supertype constructor has been called"), so
+    a central `getRegistryName()` injection is impossible; the fix threads names as literals:
   * `PortIds` helper (api/util) — blockKey/itemKey builders.
   * New `AbstractColonyBlock(String hutName)` / `AbstractBlockHut(String hutName)` ctors build
     the standard Properties WITH the id; every hut leaf passes its getHutName() expression
@@ -192,40 +192,40 @@ Reference sources cloned at: `/home/z/my-project/portsrc/` (283 MB total, 2604 j
     (script-resolved from same-line literals / field→name map of the Registry.register calls).
     Bug found by sweep: 4 bread items (Milky/Chorus/Sugary/Golden) IGNORED their ctor
     properties param and built fresh ones — fixed to `super(properties.food(...), tier)`.
-  Verified: brace-balance 84 files 0 errors; every props()/block name cross-checked against
-  the original jar's en_us.json lang keys (145/145) and blockstates (56/56) — ids are
-  EXACTLY the 1.21.1 ones, so loot tables/description ids/world saves stay compatible.
-  (The log's follow-on NPEs — `blockHutBaker is null`, `BlockEntityType` Set.of(null),
-  "entity has no attributes", GameData rollback — all stem from the block registration
-  aborting mid-init; they disappear once the id fix lets construction complete.)
-  Fifth runtime crash fixed (13.09 01:37): RegisterEvent ITEM phase —
-  `IllegalStateException: Trying to access unbound value '[unregistered]' from registry
-  Registry[minecraft:root / minecraft:item]` at `Holder$Reference.key ← Holder$Reference.is ←
+    Verified: brace-balance 84 files 0 errors; every props()/block name cross-checked against
+    the original jar's en_us.json lang keys (145/145) and blockstates (56/56) — ids are
+    EXACTLY the 1.21.1 ones, so loot tables/description ids/world saves stay compatible.
+    (The log's follow-on NPEs — `blockHutBaker is null`, `BlockEntityType` Set.of(null),
+    "entity has no attributes", GameData rollback — all stem from the block registration
+    aborting mid-init; they disappear once the id fix lets construction complete.)
+    Fifth runtime crash fixed (13.09 01:37): RegisterEvent ITEM phase —
+    `IllegalStateException: Trying to access unbound value '[unregistered]' from registry
+    Registry[minecraft:root / minecraft:item]` at `Holder$Reference.key ← Holder$Reference.is ←
   ItemStackTemplate.<init> ← Item$Properties.craftRemainder ← ModItemsInitializer.init:275`.
-  Root cause: MC 26.1.2 `Item.Properties.craftRemainder(Item)` EAGERLY builds an
-  `ItemStackTemplate` (Item.java:432) whose constructor validates `item.builtInRegistryHolder()`
-  (`is(AIR)` → `key()` — throws for constructed-but-UNregistered items; the holder is the
-  intrusive `BuiltInRegistries.ITEM.createIntrusiveHolder(this)` reference that only
-  `Registry.register` binds). 1.21.1 merely stored the Item reference, so referencing a
-  not-yet-registered mod item was legal. ModItemsInitializer constructs ALL items first
-  (init lines 90-288) and registers them in one block afterwards — the three large bottles
-  passed an unregistered `ModItems.large_empty_bottle` as craftRemainder. Fix: register
-  `large_empty_bottle` immediately after its construction (before the three bottles), drop its
-  duplicate late registration; the remainder templates now build against a bound holder.
-  Sweep of the merged tree: `craftRemainder`/`new ItemStackTemplate` with mod items occur ONLY
-  at these 3 sites; `usingConvertsTo` references only vanilla `Items.BOWL` (bound before mod
-  RegisterEvents); `.repairable` unused; `spawnEgg(EntityType)` stores only a TypedEntityData
-  component (no holder validation), and ENTITY_TYPE registers before ITEM (the log's rollback
-  lists all 46 minecolonies entities — they WERE registered). The "Entity ... has no
-  attributes" ×46 lines are GameData-rollback noise, not a separate bug.
-  Sixth runtime crash fixed (13.09 02:31 — game REACHED MAIN MENU, crash on world creation)
+    Root cause: MC 26.1.2 `Item.Properties.craftRemainder(Item)` EAGERLY builds an
+    `ItemStackTemplate` (Item.java:432) whose constructor validates `item.builtInRegistryHolder()`
+    (`is(AIR)` → `key()` — throws for constructed-but-UNregistered items; the holder is the
+    intrusive `BuiltInRegistries.ITEM.createIntrusiveHolder(this)` reference that only
+    `Registry.register` binds). 1.21.1 merely stored the Item reference, so referencing a
+    not-yet-registered mod item was legal. ModItemsInitializer constructs ALL items first
+    (init lines 90-288) and registers them in one block afterwards — the three large bottles
+    passed an unregistered `ModItems.large_empty_bottle` as craftRemainder. Fix: register
+    `large_empty_bottle` immediately after its construction (before the three bottles), drop its
+    duplicate late registration; the remainder templates now build against a bound holder.
+    Sweep of the merged tree: `craftRemainder`/`new ItemStackTemplate` with mod items occur ONLY
+    at these 3 sites; `usingConvertsTo` references only vanilla `Items.BOWL` (bound before mod
+    RegisterEvents); `.repairable` unused; `spawnEgg(EntityType)` stores only a TypedEntityData
+    component (no holder validation), and ENTITY_TYPE registers before ITEM (the log's rollback
+    lists all 46 minecolonies entities — they WERE registered). The "Entity ... has no
+    attributes" ×46 lines are GameData-rollback noise, not a separate bug.
+    Sixth runtime crash fixed (13.09 02:31 — game REACHED MAIN MENU, crash on world creation)
   + post-startup stabilization batch. World creation abort:
-  `EventBus exception during AddServerReloadListenersEvent → RecruitmentItemsListener.<clinit>:58
-  → ItemStack.<init> → Holder$Reference.components → NPE "Components not bound yet"`.
-  Root cause: in 26.1.2 item components are DATA-DRIVEN — they bind to registry holders during
-  registry-data (datapack) load, i.e. AFTER AddServerReloadListenersEvent. Any `new ItemStack(...)`
-  before that point NPEs (in 1.21.1 components lived on the Item instance from construction).
-  Three instances fixed:
+    `EventBus exception during AddServerReloadListenersEvent → RecruitmentItemsListener.<clinit>:58
+    → ItemStack.<init> → Holder$Reference.components → NPE "Components not bound yet"`.
+    Root cause: in 26.1.2 item components are DATA-DRIVEN — they bind to registry holders during
+    registry-data (datapack) load, i.e. AFTER AddServerReloadListenersEvent. Any `new ItemStack(...)`
+    before that point NPEs (in 1.21.1 components lived on the Item instance from construction).
+    Three instances fixed:
   * `RecruitmentItemsListener.RARITY_TO_BOOT_MAP` was a static Map.ofEntries of ItemStacks →
     class-init ran during listener construction → NPE. Now lazily built on first `apply()` use.
   * `ModEquipmentTypes.initRegisterEquipmentTiers` (called `new ItemStack(Items.BOW).getMaxDamage()`
@@ -243,7 +243,7 @@ Reference sources cloned at: `/home/z/my-project/portsrc/` (283 MB total, 2604 j
     structure pack discovery (9399 blueprints). Fixed by carrying path→modId pairs and passing
     `mod.getModId()` directly. (The "Failed loading packs from mod path: blueprints/minecraft|neoforge|jei"
     WARNs are benign — mods without a blueprints folder.)
-  Model system (all 26.1.2 changes):
+    Model system (all 26.1.2 changes):
   * Racks: `models/block/blockrack*.json` were 1-line `"loader": "domum_ornamentum:materially_textured"`
     wrappers (loader class gone — the port replaced it with the 26.x `RegisterBlockStateModels` /
     `RegisterItemModelsEvent` system, `ModBusEventHandler` was already wired). Blockstate
@@ -272,7 +272,7 @@ Reference sources cloned at: `/home/z/my-project/portsrc/` (283 MB total, 2604 j
     armorstand/wood → armorstand/armorstand, models/armor/leather_layer_1 →
     entity/equipment/humanoid/leather) — none of them had any code/XML consumer.
     Domum block spec models need nothing — they use `block/*` textures only.
-  Data format:
+    Data format:
   * `loot_table/recipes/enchanter1-5.json`: `minecraft:stored_enchantments` component values
     carried a `"levels"` wrapper (1.21.1 ItemEnchantments). 26.1.2's `ItemEnchantments.CODEC`
     is a flat `unboundedMap(Enchantment.CODEC, intRange(1,255))` — the wrapper made all 5 files
@@ -284,11 +284,11 @@ Reference sources cloned at: `/home/z/my-project/portsrc/` (283 MB total, 2604 j
     `tags/block/tier2blocks.json`; `#minecraft:trim_templates` removed from
     `tags/item/stonemason_product_excluded.json` (tag no longer exists in 26.1.2 — ItemTags
     only keeps trimmable_armor/trim_materials; smithing templates aren't stonemason products).
-  Class parity vs original jar: 1961/1961 runtime classes ported (verified by path diff;
-  64 absent = 57 datagen providers + 9 compat integration classes (journeymap/dynamictrees/tinkers,
-  unreferenced) + 2 utilities replaced/moved). Resource parity: 9399/9399 blueprints,
-  all assets/data namespaces present; only 1 dynamictrees compat tag absent (deliberate).
-  Next: runtime stabilization — construct → common setup → client setup → world → colony.
+    Class parity vs original jar: 1961/1961 runtime classes ported (verified by path diff;
+    64 absent = 57 datagen providers + 9 compat integration classes (journeymap/dynamictrees/tinkers,
+    unreferenced) + 2 utilities replaced/moved). Resource parity: 9399/9399 blueprints,
+    all assets/data namespaces present; only 1 dynamictrees compat tag absent (deliberate).
+    Next: runtime stabilization — construct → common setup → client setup → world → colony.
 
   Seventh runtime crash fixed (13.09 03:39 — game STARTS, world creation completes, then
   reload-listener + datapack errors). Log: "Failed to parse thing: 'Item minecraft:sand does
@@ -332,23 +332,23 @@ Reference sources cloned at: `/home/z/my-project/portsrc/` (283 MB total, 2604 j
     a modifier (the per-modifier files in data/minecolonies/loot_modifiers/ already parse fine
     — the old registry file was the only error). Supply loot for the camp/ship racks is driven
     by these GLMs (supplycamp/supplyship add_table + generate_supply_loot condition).
-  Rack "3 random full models" RESTORED (was flattened in the sixth batch — that flattening
-  note above is superseded): the original 1.21.1 blockstate used vanilla weighted variant
-  arrays (40/30/30) over three full-rack models per variant (blockrackfull{,_1,_2} and
-  blockrackfulldouble{,_1,_2}). Vanilla weighted arrays still only accept plain Variants, so
-  the weights now live INSIDE the custom model: `MateriallyTexturedBlockStateModel.Unbaked`
-  accepts either `"model": "<id>"` (single, unchanged — all 45 DO blockstates keep parsing) or
-  `"models": [{"model": ..., "weight": ...}, ...]` (weighted). Baking the weighted form
-  produces `WeightedMateriallyTexturedModel` (DynamicBlockStateModel) which picks one entry per
-  position — stable per position like vanilla WeightedVariants (seed save/restore around
-  `WeightedList.getRandomOrThrow`, mirroring NeoForge's CompositeBlockModel) and retextures via
-  the selected submodel. Geometry key = (selected submodel identity + its own key) so positions
-  with different picked variants never share meshing cache entries. Blockstate
-  `blockminecoloniesrack.json` rewritten: 20 variants (5 RackType x 4 facings), full/fullsingle
-  use the weighted 40/30/30 form, empty (double) → DO type on rack/blockrackemptydouble,
-  emptysingle → plain blockrackempty, air → plain blockairrack (original rotations), the stale
-  `variant=blockrackemptydouble` entries (the 4 "Unknown value: blockrackemptydouble"
-  warnings) removed.
+    Rack "3 random full models" RESTORED (was flattened in the sixth batch — that flattening
+    note above is superseded): the original 1.21.1 blockstate used vanilla weighted variant
+    arrays (40/30/30) over three full-rack models per variant (blockrackfull{,_1,_2} and
+    blockrackfulldouble{,_1,_2}). Vanilla weighted arrays still only accept plain Variants, so
+    the weights now live INSIDE the custom model: `MateriallyTexturedBlockStateModel.Unbaked`
+    accepts either `"model": "<id>"` (single, unchanged — all 45 DO blockstates keep parsing) or
+    `"models": [{"model": ..., "weight": ...}, ...]` (weighted). Baking the weighted form
+    produces `WeightedMateriallyTexturedModel` (DynamicBlockStateModel) which picks one entry per
+    position — stable per position like vanilla WeightedVariants (seed save/restore around
+    `WeightedList.getRandomOrThrow`, mirroring NeoForge's CompositeBlockModel) and retextures via
+    the selected submodel. Geometry key = (selected submodel identity + its own key) so positions
+    with different picked variants never share meshing cache entries. Blockstate
+    `blockminecoloniesrack.json` rewritten: 20 variants (5 RackType x 4 facings), full/fullsingle
+    use the weighted 40/30/30 form, empty (double) → DO type on rack/blockrackemptydouble,
+    emptysingle → plain blockrackempty, air → plain blockairrack (original rotations), the stale
+    `variant=blockrackemptydouble` entries (the 4 "Unknown value: blockrackemptydouble"
+    warnings) removed.
 
   Eighth fix — BUILD error (13.09 02:27, reported from user's IDE while compiling the seventh
   batch): `MateriallyTexturedBlockStateModel` (the new weighted-rack model) failed to compile with
@@ -703,15 +703,15 @@ Reference sources cloned at: `/home/z/my-project/portsrc/` (283 MB total, 2604 j
     * ClientEventRegistry.OPTIONS_REGISTRY_EVENT_EVENT/INFO_SLOT_REGISTRY_EVENT_EVENT
       → the non-suffixed twins OPTIONS_REGISTRY_EVENT/INFO_SLOT_REGISTRY_EVENT;
     * WaypointFactory.createClientWaypoint(...) → createWaypoint(...) (same signature).
-    NO v2 replacement exists for journeymap.api.v2.client.display.Context$UI (whole v2
-    overlay API references it) → kept, with @SuppressWarnings("deprecation") + comment
-    on the two methods that touch it (JourneymapPlugin.onEntityRadarUpdateEvent,
-    ColonyBorderMapping.updatePending).
-    VERIFIED: brace/paren balance (string/comment-aware lexer) on all 6 compat files ✓;
-    no stale references left (grep sweep: location(, new ChunkPos(, toLong,
-    createClientWaypoint, client.option, client.JourneyMapPlugin, _EVENT_EVENT —
-    comment hits only); every replacement member exists non-deprecated in the
-    user's artifact (dump_depr.py + api_dump.txt).
+      NO v2 replacement exists for journeymap.api.v2.client.display.Context$UI (whole v2
+      overlay API references it) → kept, with @SuppressWarnings("deprecation") + comment
+      on the two methods that touch it (JourneymapPlugin.onEntityRadarUpdateEvent,
+      ColonyBorderMapping.updatePending).
+      VERIFIED: brace/paren balance (string/comment-aware lexer) on all 6 compat files ✓;
+      no stale references left (grep sweep: location(, new ChunkPos(, toLong,
+      createClientWaypoint, client.option, client.JourneyMapPlugin, _EVENT_EVENT —
+      comment hits only); every replacement member exists non-deprecated in the
+      user's artifact (dump_depr.py + api_dump.txt).
 
   Each phase must COMPILE + LOAD in the dev client before the next starts.
 
@@ -741,5 +741,13 @@ Reference sources cloned at: `/home/z/my-project/portsrc/` (283 MB total, 2604 j
 - `Screen.hasShiftDown()` statics → `Minecraft.getInstance().hasShiftDown()` instance
 - `FMLEnvironment.production/dist` fields → `isProduction()`/`getDist()` methods
 - `RenderSystem.setShader*/blend/logicOp/recordRenderCall` GONE
+- `RenderType` layering (`LayeringTransform.VIEW_OFFSET_Z_LAYERING` → `ProjectionType#applyLayeringTransform`,
+  a `scale(1 - 1/4096)` post-multiply on the ModelViewStack): vanilla pushes the modifier at
+  `RenderType#draw` time with camera-relative vertices in the buffers, so the scale acts in EYE
+  space (uniform pull toward the eye = deterministic coplanar depth bias). When replaying
+  model-LOCAL vertices with the translation on the stack instead, the modifier MUST be pushed
+  BEFORE `mul(translation)` — after it, the scale acts in model space (pull toward the model's
+  origin corner; blocks near that corner lose the bias entirely and z-fight). Confirmed live:
+  the blueprint GPU-mesh path under shader packs (0.4.4–0.5.0 "grid flicker" bug, fixed 0.5.1)
 - AT pattern: `[[accessTransformers]]` in mods.toml + `minecraft.accessTransformers.file` in build.gradle
 

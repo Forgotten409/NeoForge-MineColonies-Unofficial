@@ -10,6 +10,8 @@ import com.ldtteam.structurize.component.CapturedBlock;
 import com.ldtteam.structurize.storage.rendering.types.BlueprintPreviewData;
 import com.ldtteam.structurize.tag.ModTags;
 import com.ldtteam.structurize.util.BlockInfo;
+import com.ldtteam.structurize.util.ShaderFallbackRenderer;
+import com.ldtteam.structurize.util.ShaderPackCompat;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.BlendFunction;
@@ -51,6 +53,7 @@ import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.OutputTarget;
@@ -60,6 +63,7 @@ import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.util.profiling.Profiler;
 import net.minecraft.world.entity.Entity;
@@ -70,6 +74,7 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
+import java.util.function.Consumer;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.RegisterRenderBuffersEvent;
@@ -170,16 +175,48 @@ public class BlueprintRenderer implements AutoCloseable
     private Map<ChunkSectionLayer, BakedLayerMesh> gpuOpaqueMeshes;
 
     /**
+     * PORT26 FIX v4 (preview FPS under packs): the pack state the current GPU meshes
+     * were baked for. The shader-pack light floor ({@link #PACK_PREVIEW_LIGHT_FLOOR})
+     * is baked INTO the mesh vertices, so a pack on/off flip requires a rebake —
+     * rare (a settings/reload event), and handled lazily at draw time.
+     */
+    private Boolean meshesBakedForPack;
+
+    /**
      * A baked preview layer: the GPU-resident vertex buffer (blueprint-local coordinates —
      * the camera-relative translation is supplied per frame through the global model-view
-     * stack) and the index count for the shared sequential QUADS index buffer.
+     * stack), the index count for the shared sequential QUADS index buffer, and the vertex
+     * format the buffer was baked with (see {@link #opaqueMeshFormatDrift} — under an active
+     * shader pack Iris swaps the pipeline's vertex format to its EXTENDED terrain variant
+     * while the level is being rendered, and the baked mesh stride must match what the draw
+     * pass will actually interpret).
      */
-    private record BakedLayerMesh(GpuBuffer vertexBuffer, int indexCount)
+    private record BakedLayerMesh(GpuBuffer vertexBuffer, int indexCount, VertexFormat format)
     {
     }
 
     private long lastGameTime;
     private Set<Object> crashingObjects = Collections.newSetFromMap(new IdentityHashMap<>());
+
+    /**
+     * PORT26-compat (Iris & shader packs): minimum packed-light level the preview
+     * vertices are clamped up to while a pack is active (0 = no clamping).
+     *
+     * <p>Problem being solved ("parts of the building are pitch black at night with
+     * shaders"): the preview light is baked from the fake level's light provider —
+     * either world light at the placement position (config {@code light_level = -1})
+     * or a fixed configured level. With a realistic-darkness pack (Complementary &
+     * friends) the areas the lightmap sees as (block 0, sky 0) — interior blocks,
+     * everything inside the terrain the building is sunk into — render truly black,
+     * and the pack's shadow darkening suppresses the sky contribution of anything in
+     * the moon's shadow the same way. The floor clamps both channels to a
+     * shadow-immune "clearly visible preview" level (block light 8 ≈ nearby torch):
+     * exactly like the vanilla minimum ambient that made those areas merely dark
+     * instead of black. Only applied under an active pack — without shaders the
+     * vanilla lightmap's own ambient floor already keeps the preview visible, and
+     * the no-pack rendering stays pixel-identical to the 1.21.1 behaviour.</p>
+     */
+    private static final int PACK_PREVIEW_LIGHT_FLOOR = 8;
 
     /**
      * A single baked block quad: the quad itself (immutable record), the AO/tint/light data
@@ -345,7 +382,24 @@ public class BlueprintRenderer implements AutoCloseable
         // PORT26 FIX (preview perf): bake SOLID/CUTOUT into GPU-resident vertex buffers once
         // — the per-frame replay then costs one dynamic-uniform write + two draw calls
         // instead of a CPU vertex emission per quad (the ~10 fps on large previews).
-        uploadOpaqueLayerMeshes();
+        // PORT26 FIX v4: baked with the CURRENT pack state's light floor (see
+        // meshesBakedForPack — a later flip triggers a lazy rebake at draw time).
+        // PORT26 FIX v5 (black preview meshes under packs): with a pack ALREADY ACTIVE the
+        // bake is deferred to the first draw instead — it must happen INSIDE the level
+        // render, where Iris's terrain vertex-format extension is active, so the baked
+        // stride matches what the draw pass interprets (see uploadOpaqueLayerMeshes).
+        // The stale meshes are released and the lazy-bake flag reset so the draw path
+        // always rebakes (a blueprint re-init under a pack must never keep drawing the
+        // previous blueprint's buffers).
+        if (!ShaderPackCompat.isShaderPackActive())
+        {
+            uploadOpaqueLayerMeshes();
+        }
+        else
+        {
+            closeGpuOpaqueMeshes();
+            meshesBakedForPack = null;
+        }
     }
 
     /**
@@ -361,6 +415,12 @@ public class BlueprintRenderer implements AutoCloseable
     private void uploadOpaqueLayerMeshes()
     {
         closeGpuOpaqueMeshes();
+        final boolean packActive = ShaderPackCompat.isShaderPackActive();
+        meshesBakedForPack = packActive;
+        // GPU mesh path is drawn under BOTH modes since FIX v4 — under a pack the
+        // light floor is baked into the vertices (see PACK_PREVIEW_LIGHT_FLOOR:
+        // the floor is a shader-pack mitigation); without a pack it stays 0.
+        final int lightFloor = packActive ? PACK_PREVIEW_LIGHT_FLOOR : 0;
         gpuOpaqueMeshes = new EnumMap<>(ChunkSectionLayer.class);
         if (cachedQuads == null)
         {
@@ -387,14 +447,14 @@ public class BlueprintRenderer implements AutoCloseable
             {
                 for (final CachedBlockQuad cachedQuad : quads)
                 {
-                    putQuad(builder, identityPose, cachedQuad, -1);
+                    putQuad(builder, identityPose, cachedQuad, -1, lightFloor);
                 }
             }
             if (hasFluids)
             {
                 for (final CachedFluidVertex fluidVertex : fluidVertices)
                 {
-                    putFluidVertex(builder, identityPose, fluidVertex, -1);
+                    putFluidVertex(builder, identityPose, fluidVertex, -1, lightFloor);
                 }
             }
 
@@ -407,7 +467,18 @@ public class BlueprintRenderer implements AutoCloseable
                   .createBuffer(() -> "structurize preview " + layer,
                     GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST,
                     mesh.vertexBuffer());
-                gpuOpaqueMeshes.put(layer, new BakedLayerMesh(vertexBuffer, mesh.drawState().indexCount()));
+                // PORT26 FIX v5 (black preview meshes under packs): remember the vertex format
+                // this buffer was built with. While a pack is active, Iris swaps
+                // RenderPipeline#getVertexFormat() to its EXTENDED terrain format (extra
+                // shader attributes) during the level render — so a mesh baked OUTSIDE that
+                // window (plain block stride) does not match what GlCommandEncoder will
+                // interpret at draw time (extended stride), and every vertex past the first
+                // decodes as garbage: the preview renders as "thousands of black meshes".
+                // The draw path compares this stored format against the format the draw
+                // pass is about to use (opaqueMeshFormatDrift) and rebakes on mismatch —
+                // evaluating BOTH sides at draw time (inside the level render stage) keeps
+                // them consistent by construction.
+                gpuOpaqueMeshes.put(layer, new BakedLayerMesh(vertexBuffer, mesh.drawState().indexCount(), renderType.format()));
                 mesh.close();
             }
         }
@@ -426,6 +497,56 @@ public class BlueprintRenderer implements AutoCloseable
             }
             gpuOpaqueMeshes = null;
         }
+    }
+
+    /**
+     * PORT26 FIX v5 (0.4.5, "the whole preview renders black / thousands of black meshes"
+     * under an active shader pack): checks whether the baked GPU meshes still match the
+     * vertex format the draw pass is about to interpret.
+     *
+     * <p>While a shader pack renders the level, Iris's mixin on
+     * {@code RenderPipeline#getVertexFormat()} answers with its EXTENDED terrain format
+     * (extra shader attributes, larger stride) — and {@code GlCommandEncoder#executeDraw}
+     * binds vertex attributes through exactly that call. A mesh baked <em>outside</em> the
+     * level render window (e.g. during render-state extraction, when the extension is
+     * inactive) has the plain block format's stride, so the draw pass misreads every
+     * vertex past the first — the preview decodes as garbage ("thousands of black
+     * meshes"). Comparing the stored bake-time format against
+     * {@code RenderType#pipeline()#getVertexFormat()} <em>here</em> — inside the level
+     * render stage, the same flag state the draw below will run under — makes bake and
+     * draw consistent by construction: on drift the caller rebakes (which re-reads the
+     * format at the same point in the frame, producing the extended-stride mesh), and
+     * without a pack (or without Iris) both sides are the plain block format and the
+     * check is a stable no-op.</p>
+     *
+     * @param packMode the current shader-pack state (selects the draw-time render types).
+     * @return true when any baked layer's format no longer matches its draw-time format.
+     */
+    private boolean opaqueMeshFormatDrift(final boolean packMode)
+    {
+        if (gpuOpaqueMeshes == null)
+        {
+            return false;
+        }
+        for (final ChunkSectionLayer layer : new ChunkSectionLayer[] {ChunkSectionLayer.SOLID, ChunkSectionLayer.CUTOUT})
+        {
+            final BakedLayerMesh baked = gpuOpaqueMeshes.get(layer);
+            if (baked == null)
+            {
+                continue;
+            }
+            final RenderType type = packMode
+                ? (layer == ChunkSectionLayer.SOLID ? ShaderFallbackRenderer.solidType() : ShaderFallbackRenderer.cutoutType())
+                : (layer == ChunkSectionLayer.SOLID ? BlueprintRenderTypes.PREVIEW_SOLID : BlueprintRenderTypes.PREVIEW_CUTOUT);
+            // reference comparison is exact here: formats are interned instances
+            // (DefaultVertexFormat constants / Iris's static extended formats), and both
+            // sides are resolved at this same instant of the frame
+            if (baked.format() != type.pipeline().getVertexFormat())
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -514,7 +635,11 @@ public class BlueprintRenderer implements AutoCloseable
     private static void printCrashReport(final CrashReport report, final BlueprintPreviewData previewData)
     {
         previewData.getBlueprint().describeSelfInCrashReport(report.addCategory("Blueprint"));
-        LOGGER.error("Problem during blueprint rendering:\n{}", report);
+        // PORT26 FIX (Iris-compat debugging): CrashReport does not override toString —
+        // logging the object itself printed "net.minecraft.CrashReport@1a2b3c" and the
+        // actual crash cause was lost (unusable for bug reports). getFriendlyReport
+        // produces the full readable report.
+        LOGGER.error("Problem during blueprint rendering:\n{}", report.getFriendlyReport(net.minecraft.ReportType.CRASH));
     }
 
     /**
@@ -580,16 +705,26 @@ public class BlueprintRenderer implements AutoCloseable
             }
 
             Profiler.get().popPush("struct_render_blocks_finish");
-            if (ghost)
+            // PORT26-compat (Iris & shader packs): under an active pack the preview geometry
+            // lives in the fallback buffers (vanilla moving-block types) and is flushed by
+            // WorldRenderMacros#renderWorldLastEvent right after this context finished —
+            // mid-frame, through the pack-supported vanilla types, with the exact level
+            // model-view matrix the event carries. NOT here (the old AfterLevel deferral
+            // drew outside the frame graph's passes and double-rotated the overlays —
+            // see ShaderFallbackRenderer).
+            if (!ShaderPackCompat.isShaderPackActive())
             {
-                bufferSource.endBatch(BlueprintRenderTypes.BLUEPRINT_GHOST);
-            }
-            else
-            {
-                // draw order matters: solid, cutout, translucent (sorted on upload)
-                bufferSource.endBatch(previewMovingBlockType(ChunkSectionLayer.SOLID));
-                bufferSource.endBatch(previewMovingBlockType(ChunkSectionLayer.CUTOUT));
-                bufferSource.endBatch(previewMovingBlockType(ChunkSectionLayer.TRANSLUCENT));
+                if (ghost)
+                {
+                    bufferSource.endBatch(BlueprintRenderTypes.BLUEPRINT_GHOST);
+                }
+                else
+                {
+                    // draw order matters: solid, cutout, translucent (sorted on upload)
+                    bufferSource.endBatch(previewMovingBlockType(ChunkSectionLayer.SOLID));
+                    bufferSource.endBatch(previewMovingBlockType(ChunkSectionLayer.CUTOUT));
+                    bufferSource.endBatch(previewMovingBlockType(ChunkSectionLayer.TRANSLUCENT));
+                }
             }
         }
         finally
@@ -625,15 +760,19 @@ public class BlueprintRenderer implements AutoCloseable
         // + block-local offsets through the pose puts the preview at its world position,
         // exactly like vanilla's moving-block rendering.
         final PoseStack.Pose pose = poseStack.last();
+        // PORT26-compat (Iris & shader packs): light floor for every preview vertex while
+        // a pack is active — see PACK_PREVIEW_LIGHT_FLOOR. Computed once per frame here
+        // (the reflection probe is cached, but this is a per-quad hot path).
+        final int lightFloor = ShaderPackCompat.isShaderPackActive() ? PACK_PREVIEW_LIGHT_FLOOR : 0;
 
         if (ghost)
         {
-            final VertexConsumer consumer = bufferSource.getBuffer(BlueprintRenderTypes.BLUEPRINT_GHOST);
+            final VertexConsumer consumer = previewBuffer(ghostType(), bufferSource);
             for (final List<CachedBlockQuad> quads : cachedQuads.values())
             {
                 for (final CachedBlockQuad cachedQuad : quads)
                 {
-                    putQuad(consumer, pose, cachedQuad, alphaByte);
+                    putQuad(consumer, pose, cachedQuad, alphaByte, lightFloor);
                 }
             }
             // fluids share the ghost buffer (alpha applied per-vertex like the block quads)
@@ -643,7 +782,7 @@ public class BlueprintRenderer implements AutoCloseable
                 {
                     for (final CachedFluidVertex fluidVertex : fluidVertices)
                     {
-                        putFluidVertex(consumer, pose, fluidVertex, alphaByte);
+                        putFluidVertex(consumer, pose, fluidVertex, alphaByte, lightFloor);
                     }
                 }
             }
@@ -654,6 +793,27 @@ public class BlueprintRenderer implements AutoCloseable
             // buffers (drawn BEFORE the translucent batch — same draw order as before:
             // solid, cutout, translucent). TRANSLUCENT stays on the per-vertex emission
             // path because its render type is sortOnUpload (camera-distance quad sorting).
+            //
+            // PORT26 FIX v4 (preview FPS under packs): the GPU-mesh pass is NO LONGER
+            // skipped under an active shader pack — it now draws through the FALLBACK
+            // setups (vanilla SOLID_BLOCK/CUTOUT_BLOCK pipelines — Iris redirects them
+            // into the pack's programs exactly like every other immediate draw, plus
+            // the same view-offset layering the CPU fallback types apply), see
+            // drawOpaqueMeshes. The old pack path re-emitted EVERY quad of the blueprint
+            // through the CPU fallback buffers every frame (putQuad per quad, translucent
+            // re-upload + sort) — the reported ~10 fps on large building previews under
+            // shaders (vs ~100 fps without).
+            final boolean shaderFallback = ShaderPackCompat.isShaderPackActive();
+            // lazy rebake when the pack state flipped since the meshes were baked
+            // (the light floor is baked into the mesh vertices), or when the vertex format
+            // the draw pass is about to interpret drifted from the format the meshes were
+            // baked with (Iris's pack-time terrain format extension — see
+            // opaqueMeshFormatDrift; both sides are evaluated HERE, inside the level render
+            // stage, so bake and draw can never disagree)
+            if (meshesBakedForPack == null || meshesBakedForPack != shaderFallback || opaqueMeshFormatDrift(shaderFallback))
+            {
+                uploadOpaqueLayerMeshes();
+            }
             drawOpaqueMeshes(pose, mc);
 
             final List<CachedBlockQuad> translucentQuads = cachedQuads.get(ChunkSectionLayer.TRANSLUCENT);
@@ -664,19 +824,19 @@ public class BlueprintRenderer implements AutoCloseable
             final boolean cutoutDrawnViaMesh = gpuOpaqueMeshes != null && gpuOpaqueMeshes.containsKey(ChunkSectionLayer.CUTOUT);
             if (hasTranslucent || !solidDrawnViaMesh || !cutoutDrawnViaMesh)
             {
-                final VertexConsumer consumer = bufferSource.getBuffer(previewMovingBlockType(ChunkSectionLayer.TRANSLUCENT));
+                final VertexConsumer consumer = previewBuffer(previewMovingBlockType(ChunkSectionLayer.TRANSLUCENT), bufferSource);
                 if (translucentQuads != null && !translucentQuads.isEmpty())
                 {
                     for (final CachedBlockQuad cachedQuad : translucentQuads)
                     {
-                        putQuad(consumer, pose, cachedQuad, -1);
+                        putQuad(consumer, pose, cachedQuad, -1, lightFloor);
                     }
                 }
                 if (translucentFluids != null && !translucentFluids.isEmpty())
                 {
                     for (final CachedFluidVertex fluidVertex : translucentFluids)
                     {
-                        putFluidVertex(consumer, pose, fluidVertex, -1);
+                        putFluidVertex(consumer, pose, fluidVertex, -1, lightFloor);
                     }
                 }
 
@@ -695,19 +855,19 @@ public class BlueprintRenderer implements AutoCloseable
                     {
                         continue;
                     }
-                    final VertexConsumer layerConsumer = bufferSource.getBuffer(previewMovingBlockType(layer));
+                    final VertexConsumer layerConsumer = previewBuffer(previewMovingBlockType(layer), bufferSource);
                     if (quads != null)
                     {
                         for (final CachedBlockQuad cachedQuad : quads)
                         {
-                            putQuad(layerConsumer, pose, cachedQuad, -1);
+                            putQuad(layerConsumer, pose, cachedQuad, -1, lightFloor);
                         }
                     }
                     if (fluidVertices != null)
                     {
                         for (final CachedFluidVertex fluidVertex : fluidVertices)
                         {
-                            putFluidVertex(layerConsumer, pose, fluidVertex, -1);
+                            putFluidVertex(layerConsumer, pose, fluidVertex, -1, lightFloor);
                         }
                     }
                 }
@@ -717,15 +877,30 @@ public class BlueprintRenderer implements AutoCloseable
 
     /**
      * Draws the baked SOLID/CUTOUT layers through a dedicated render pass — the pattern of
-     * vanilla's {@code ChunkSectionsToRender#renderGroup}: one pass, the render setup's own
-     * texture bindings (block atlas + lightmap), the shared sequential QUADS index buffer,
-     * and one dynamic-uniform write carrying the model-view matrix.
+     * vanilla's {@code ChunkSectionsToRender#renderGroup} and {@code RenderType#draw}:
+     * one pass, the render setup's own texture bindings (block atlas + lightmap), the
+     * shared sequential QUADS index buffer, and one dynamic-uniform write carrying the
+     * model-view matrix.
      *
      * <p>PORT26 FIX (preview perf): the vertex buffers were uploaded once at init in
      * blueprint-local coordinates; the camera-relative translation is supplied per frame by
      * pushing the pose onto the global model-view stack ({@code RenderSystem.getModelViewStack()})
      * — mathematically identical to the previous per-vertex pose baking
      * ({@code M * pose * v == (M * pose) * v}), but with zero per-vertex CPU work.</p>
+     *
+     * <p>PORT26 FIX v4 (preview FPS under packs): under an active pack this pass now draws
+     * through the ShaderFallbackRenderer setups — the VANILLA SOLID_BLOCK/CUTOUT_BLOCK
+     * pipelines with the block-atlas/lightmap samplers — instead of the custom preview
+     * pipelines (which Iris cannot redirect: "Missing program structurize:pipeline/…" →
+     * invisible). Iris redirects the vanilla pipelines by identity/location into the pack's
+     * programs for EVERY pass, including manually-created ones — the exact same mechanism
+     * every {@code RenderType#draw} immediate draw already relies on under packs (piston
+     * moving blocks, debug boxes). The view-offset layering ({@code VIEW_OFFSET_Z_LAYERING})
+     * — the coplanar depth-bias z-fighting fix — is applied on the model-view stack exactly
+     * like {@code RenderType#draw} applies it for the CPU fallback types, so the fast mesh
+     * path keeps the same depth-bias behavior. The earlier "skip under pack" behaviour
+     * forced every quad back through the per-frame CPU emission (putQuad × every quad,
+     * buffer re-upload + translucent sort every frame) — the ~10 fps on large previews.</p>
      *
      * @param pose the camera-relative pose (anchor - camera) previously baked into vertices.
      * @param mc   the client.
@@ -737,59 +912,112 @@ public class BlueprintRenderer implements AutoCloseable
             return;
         }
 
+        final boolean packMode = ShaderPackCompat.isShaderPackActive();
+
         final Matrix4fStack modelViewStack = RenderSystem.getModelViewStack();
         modelViewStack.pushMatrix();
         try
         {
+            // pack mode: the same view-offset layering the CPU fallback types apply inside
+            // RenderType#draw (coplanar depth bias — keeps the z-fighting fix on this path).
+            //
+            // PORT26 FIX 0.5.1 ("grid-like flicker of the structure preview under shader
+            // packs"): the modifier MUST be pushed BEFORE the blueprint translation — the
+            // exact position RenderType#draw pushes it at. Vanilla's CPU path bakes
+            // (anchor - camera) into the vertices and draws with M = V * S, so the S scale
+            // acts on CAMERA-RELATIVE coordinates: a uniform pull toward the eye = the
+            // intended deterministic depth bias at any distance. This GPU path keeps
+            // blueprint-LOCAL vertices with T on the stack, so pushing S after T (the old
+            // order) scaled the BLUEPRINT-LOCAL coordinates instead — a pull toward the
+            // blueprint's anchor corner: preview blocks near the anchor kept a ~zero depth
+            // bias and z-fought against coplanar world faces under packs (the reported
+            // flicker; the no-pack path never showed it because its custom pipelines bias
+            // with GPU polygon offset). Pushing S first yields M = V * S * T — applied to
+            // blueprint-local vertices that is matrix-identical to the CPU path everywhere.
+            final Consumer<Matrix4fStack> layering = packMode ? LayeringTransform.VIEW_OFFSET_Z_LAYERING.getModifier() : null;
+            if (layering != null)
+            {
+                modelViewStack.pushMatrix();
+                layering.accept(modelViewStack);
+            }
             modelViewStack.mul(pose.pose());
-            final RenderTarget renderTarget = mc.getMainRenderTarget();
-            final GpuTextureView colorTexture = RenderSystem.outputColorTextureOverride != null
-                                                   ? RenderSystem.outputColorTextureOverride
-                                                   : renderTarget.getColorTextureView();
-            final GpuTextureView depthTexture = renderTarget.useDepth
-                                                   ? (RenderSystem.outputDepthTextureOverride != null
-                                                        ? RenderSystem.outputDepthTextureOverride
-                                                        : renderTarget.getDepthTextureView())
-                                                   : null;
-
-            final RenderPass renderPass = RenderSystem.getDevice()
-              .createCommandEncoder()
-              .createRenderPass(() -> "Structurize blueprint preview (opaque layers)",
-                colorTexture, OptionalInt.empty(), depthTexture, OptionalDouble.empty());
             try
             {
-                RenderSystem.bindDefaultUniforms(renderPass);
+                final RenderTarget renderTarget = mc.getMainRenderTarget();
+                final GpuTextureView colorTexture = RenderSystem.outputColorTextureOverride != null
+                                                       ? RenderSystem.outputColorTextureOverride
+                                                       : renderTarget.getColorTextureView();
+                final GpuTextureView depthTexture = renderTarget.useDepth
+                                                       ? (RenderSystem.outputDepthTextureOverride != null
+                                                            ? RenderSystem.outputDepthTextureOverride
+                                                            : renderTarget.getDepthTextureView())
+                                                       : null;
 
-                // texture bindings exactly as the preview render setups declare them
-                // (Sampler0 = block atlas, Sampler2 = lightmap from useLightmap())
-                for (final Map.Entry<String, RenderSetup.TextureAndSampler> entry : BlueprintRenderTypes.PREVIEW_SOLID_SETUP.getTextures().entrySet())
-                {
-                    renderPass.bindTexture(entry.getKey(), entry.getValue().textureView(), entry.getValue().sampler());
-                }
-
+                // PORT26 FIX (blueprint crash "Close the existing render pass before performing
+                // additional commands"): DynamicUniforms#writeTransform maps the uniform ring
+                // buffer through CommandEncoder#mapBuffer, which is ILLEGAL while a render pass
+                // is open — vanilla's RenderType#draw writes the transform strictly BEFORE
+                // createRenderPass (see the decompiled 26.1.2 RenderType#draw). The old order
+                // (writeTransform inside the open pass) crashed the first frame the GPU-baked
+                // layers drew ("Problem during blueprint rendering: ... IllegalStateException"
+                // in CommandEncoder#mapBuffer at drawOpaqueMeshes), killed the placement preview
+                // and with it the ability to place buildings.
                 final GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms().writeTransform(
                   RenderSystem.getModelViewMatrix(), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
 
-                final RenderSystem.AutoStorageIndexBuffer autoIndices = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
-                for (final ChunkSectionLayer layer : new ChunkSectionLayer[] {ChunkSectionLayer.SOLID, ChunkSectionLayer.CUTOUT})
+                final RenderPass renderPass = RenderSystem.getDevice()
+                  .createCommandEncoder()
+                  .createRenderPass(() -> "Structurize blueprint preview (opaque layers)",
+                    colorTexture, OptionalInt.empty(), depthTexture, OptionalDouble.empty());
+                try
                 {
-                    final BakedLayerMesh baked = gpuOpaqueMeshes.get(layer);
-                    if (baked == null)
-                    {
-                        continue;
-                    }
+                    RenderSystem.bindDefaultUniforms(renderPass);
 
-                    renderPass.setPipeline(previewMovingBlockType(layer).pipeline());
-                    renderPass.setUniform("DynamicTransforms", dynamicTransforms);
-                    renderPass.setVertexBuffer(0, baked.vertexBuffer());
-                    final GpuBuffer indices = autoIndices.getBuffer(baked.indexCount());
-                    renderPass.setIndexBuffer(indices, autoIndices.type());
-                    renderPass.drawIndexed(0, 0, baked.indexCount(), 1);
+                    final RenderSystem.AutoStorageIndexBuffer autoIndices = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
+                    for (final ChunkSectionLayer layer : new ChunkSectionLayer[] {ChunkSectionLayer.SOLID, ChunkSectionLayer.CUTOUT})
+                    {
+                        final BakedLayerMesh baked = gpuOpaqueMeshes.get(layer);
+                        if (baked == null)
+                        {
+                            continue;
+                        }
+
+                        // pack mode → vanilla fallback setups (Iris-redirectable); otherwise
+                        // the custom (depth-biased) preview setups — texture bindings come from
+                        // the setup object, the pipeline through the RenderType's public accessor
+                        // (RenderSetup#pipeline is package-private, RenderType#pipeline() is not)
+                        final RenderSetup setup = packMode
+                            ? (layer == ChunkSectionLayer.SOLID ? ShaderFallbackRenderer.solidSetup() : ShaderFallbackRenderer.cutoutSetup())
+                            : (layer == ChunkSectionLayer.SOLID ? BlueprintRenderTypes.PREVIEW_SOLID_SETUP : BlueprintRenderTypes.PREVIEW_CUTOUT_SETUP);
+                        final RenderType type = packMode
+                            ? (layer == ChunkSectionLayer.SOLID ? ShaderFallbackRenderer.solidType() : ShaderFallbackRenderer.cutoutType())
+                            : (layer == ChunkSectionLayer.SOLID ? BlueprintRenderTypes.PREVIEW_SOLID : BlueprintRenderTypes.PREVIEW_CUTOUT);
+
+                        renderPass.setPipeline(type.pipeline());
+                        renderPass.setUniform("DynamicTransforms", dynamicTransforms);
+                        renderPass.setVertexBuffer(0, baked.vertexBuffer());
+                        // texture bindings exactly as the render setup declares them
+                        // (Sampler0 = block atlas, Sampler2 = lightmap from useLightmap())
+                        for (final Map.Entry<String, RenderSetup.TextureAndSampler> entry : setup.getTextures().entrySet())
+                        {
+                            renderPass.bindTexture(entry.getKey(), entry.getValue().textureView(), entry.getValue().sampler());
+                        }
+                        final GpuBuffer indices = autoIndices.getBuffer(baked.indexCount());
+                        renderPass.setIndexBuffer(indices, autoIndices.type());
+                        renderPass.drawIndexed(0, 0, baked.indexCount(), 1);
+                    }
+                }
+                finally
+                {
+                    renderPass.close();
                 }
             }
             finally
             {
-                renderPass.close();
+                if (layering != null)
+                {
+                    modelViewStack.popMatrix();
+                }
             }
         }
         finally
@@ -958,15 +1186,64 @@ public class BlueprintRenderer implements AutoCloseable
      * {@code TEXT_POLYGON_OFFSET}, so the preview still self-occludes) — preview faces now
      * consistently win against coplanar world faces, exactly like the 1.21.1 preview which
      * overdraw the terrain it was placed in.</p>
+     *
+     * <p>PORT26-compat (Iris &amp; shader packs): with an active pack the custom preview
+     * pipelines are not in the pack's program override list ("Missing program …" — draws
+     * invisible). Degrade to the ShaderFallbackRenderer types — vanilla pipelines (pack-
+     * supported: Iris redirects them, e.g. piston moving blocks) with the view-offset
+     * layering depth bias, same block vertex format, so the emission code is unchanged.
+     * The CPU emission goes to the fallback buffers; the GPU-mesh pass (FIX v4) uses the
+     * fallback setups directly — see drawOpaqueMeshes.</p>
      */
     private static RenderType previewMovingBlockType(final ChunkSectionLayer layer)
     {
+        // PORT26-compat (Iris & shader packs): with an active pack the custom preview
+        // pipelines are not in the pack's program override list (they render invisible,
+        // and the manual mesh pass crashes mid-frame). Degrade to the vanilla
+        // moving-block types (pack-supported — pistons render correctly under packs) —
+        // same block vertex format, so the emission code below is unchanged. The
+        // buffers come from ShaderFallbackRenderer (deferred flush at AfterLevel).
+        if (ShaderPackCompat.isShaderPackActive())
+        {
+            return switch (layer)
+            {
+                case SOLID -> ShaderFallbackRenderer.solidType();
+                case CUTOUT -> ShaderFallbackRenderer.cutoutType();
+                case TRANSLUCENT -> ShaderFallbackRenderer.translucentType();
+            };
+        }
         return switch (layer)
         {
             case SOLID -> BlueprintRenderTypes.PREVIEW_SOLID;
             case CUTOUT -> BlueprintRenderTypes.PREVIEW_CUTOUT;
             case TRANSLUCENT -> BlueprintRenderTypes.PREVIEW_TRANSLUCENT;
         };
+    }
+
+    /**
+     * PORT26-compat (Iris &amp; shader packs): the preview emission buffer. Without
+     * shaders the shared game buffer source (flushed right here, per-layer); with
+     * an active pack the deferred fallback source (flushed mid-frame by
+     * {@code ShaderFallbackRenderer#flush} at the regular render-stage points —
+     * see its class docs).
+     */
+    private static VertexConsumer previewBuffer(final RenderType type, final MultiBufferSource.BufferSource bufferSource)
+    {
+        if (ShaderPackCompat.isShaderPackActive())
+        {
+            return ShaderFallbackRenderer.buffers().getBuffer(type);
+        }
+        return bufferSource.getBuffer(type);
+    }
+
+    /**
+     * PORT26-compat (Iris &amp; shader packs): ghost shell type — the custom ghost
+     * pipeline degrades to the vanilla translucent moving-block type under packs
+     * (same format; the per-vertex alpha still blends).
+     */
+    private static RenderType ghostType()
+    {
+        return ShaderPackCompat.isShaderPackActive() ? ShaderFallbackRenderer.translucentType() : BlueprintRenderTypes.BLUEPRINT_GHOST;
     }
 
     /**
@@ -978,8 +1255,11 @@ public class BlueprintRenderer implements AutoCloseable
      * BakedQuad, QuadInstance)} — positions AND the normal are transformed by the pose before
      * being written, so the camera-relative translation above actually reaches the vertices
      * (see the note in {@link #drawUnsafe}).</p>
+     *
+     * @param minLight light floor under shader packs (0 = no clamping), see
+     *                 {@link #PACK_PREVIEW_LIGHT_FLOOR}.
      */
-    private static void putQuad(final VertexConsumer consumer, final PoseStack.Pose pose, final CachedBlockQuad cachedQuad, final int alphaByte)
+    private static void putQuad(final VertexConsumer consumer, final PoseStack.Pose pose, final CachedBlockQuad cachedQuad, final int alphaByte, final int minLight)
     {
         final BakedQuad quad = cachedQuad.quad();
         final QuadInstance instance = cachedQuad.instance();
@@ -998,7 +1278,7 @@ public class BlueprintRenderer implements AutoCloseable
             {
                 color = (color & 0x00FFFFFF) | (alphaByte << 24);
             }
-            final int light = instance.getLightCoordsWithEmission(vertex, lightEmission);
+            final int light = floorLight(instance.getLightCoordsWithEmission(vertex, lightEmission), minLight);
             matrix.transformPosition(position.x() + cachedQuad.x(), position.y() + cachedQuad.y(), position.z() + cachedQuad.z(), transformedPos);
             consumer.addVertex(transformedPos.x(), transformedPos.y(), transformedPos.z(),
               color,
@@ -1010,22 +1290,43 @@ public class BlueprintRenderer implements AutoCloseable
 
     /**
      * Replays a cached fluid vertex through the pose — the fluid counterpart of
-     * {@link #putQuad}, with the same optional alpha override for ghost mode.
+     * {@link #putQuad}, with the same optional alpha override for ghost mode and the
+     * shader-pack light floor.
      */
-    private static void putFluidVertex(final VertexConsumer consumer, final PoseStack.Pose pose, final CachedFluidVertex vertex, final int alphaByte)
+    private static void putFluidVertex(final VertexConsumer consumer, final PoseStack.Pose pose, final CachedFluidVertex vertex, final int alphaByte, final int minLight)
     {
         int color = vertex.color();
         if (alphaByte >= 0)
         {
             color = (color & 0x00FFFFFF) | (alphaByte << 24);
         }
+        final int light = floorLight(vertex.light(), minLight);
         final Vector3f transformedPos = pose.pose().transformPosition(vertex.x(), vertex.y(), vertex.z(), new Vector3f());
         final Vector3f transformedNormal = pose.transformNormal(vertex.nx(), vertex.ny(), vertex.nz(), new Vector3f());
         consumer.addVertex(transformedPos.x(), transformedPos.y(), transformedPos.z(),
           color,
           vertex.u(), vertex.v(),
-          vertex.overlay(), vertex.light(),
+          vertex.overlay(), light,
           transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
+    }
+
+    /**
+     * PORT26-compat (Iris & shader packs): clamps the packed light coords up to the given
+     * per-channel floor — no-op with {@code minLight == 0}. See
+     * {@link #PACK_PREVIEW_LIGHT_FLOOR} for the problem this solves (pitch-black preview
+     * areas at night under realistic-darkness packs).
+     *
+     * @param light    the packed light coords (block &lt;&lt; 4 | sky &lt;&lt; 20).
+     * @param minLight the per-channel floor, 0 to disable.
+     * @return the clamped packed light coords.
+     */
+    private static int floorLight(final int light, final int minLight)
+    {
+        if (minLight <= 0)
+        {
+            return light;
+        }
+        return LightCoordsUtil.pack(Math.max(LightCoordsUtil.block(light), minLight), Math.max(LightCoordsUtil.sky(light), minLight));
     }
 
     /**

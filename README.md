@@ -2,7 +2,7 @@
 
 > An unofficial, GPL-3.0 licensed community port of [MineColonies](https://github.com/ldtteam/minecolonies)
 > (and its companion libraries) from Minecraft **1.21.1 / NeoForge 21.1.x** to
-> **Minecraft 26.1.2 / NeoForge 26.1.2**.
+> **Minecraft 26.1.2 and newer**.
 
 MineColonies is an interactive town-building mod: create your own colony with
 50+ buildings in over 20 styles, hire and level up NPC workers (Builders, Farmers,
@@ -18,15 +18,15 @@ the community. For the official mod, bugs and feature requests, please use the
 
 ## Status
 
-Current port release: **`1.1.1387-port26.1.2-0.4.0`** (see `gradle.properties`).
+Current port release: **`1.1.1399-port26.1.2-0.5.2`** (see `gradle.properties`).
 
 | Component | Base (1.21.1) | Port target |
 |---|---|---|
-| MineColonies | `1.1.1387-1.21.1-snapshot` (ldtteam — verified ≡ latest `1.1.1396-snapshot`, newer than latest stable `1.1.1368`) | MC `26.1.2` / NeoForge `26.1.2.95` |
-| Structurize | `1.0.832-1.21.1` (pinned) | merged into this mod |
-| BlockUI | `1.0.199-1.21.1-snapshot` (pinned) | merged into this mod |
-| Domum Ornamentum | `1.0.223-snapshot` (pinned) | merged into this mod |
-| Multi-Piston | `1.2.51-1.21.1-snapshot` (pinned) | merged into this mod |
+| MineColonies | `1.1.1399-1.21.1-snapshot` (ldtteam — latest 1.21.1 snapshot release) | MC `26.1.2` |
+| Structurize | `1.0.833-1.21.1-snapshot` (pinned) | merged into this mod |
+| BlockUI | `1.0.212-1.21.1-snapshot` (pinned) | merged into this mod |
+| Domum Ornamentum | `1.0.236-snapshot` (pinned) | merged into this mod |
+| Multi-Piston | `1.2.58-1.21.1` (pinned) | merged into this mod |
 
 The port tracks the **latest 1.21.1 sources of the upstream project** and re-targets
 them to the 26.1 toolchain. Upstream code is kept as close to original as possible —
@@ -34,7 +34,7 @@ changes are mechanical (API migrations, loader gates, package merges), not funct
 
 ## Installation
 
-1. Install **Minecraft 26.1.2** with **NeoForge 26.1.2**.
+1. Install NeoForge version that matches the port.
 2. Download the port jar from [Releases](../../releases) (the *published* jar — see
    [Two jar flavours](#two-jar-flavours)) and drop it into your `mods/` folder.
 3. Start the game. On the title screen you will see **"MineColonies port — external
@@ -67,7 +67,7 @@ bundled in the mod jar (they are ARR, see below).
 ### First run without internet
 
 If the machine playing has no internet access: put the official
-`minecolonies-1.1.1387-1.21.1-snapshot` jar into
+`minecolonies-1.1.1399-1.21.1-snapshot` jar into
 `<gamedir>/port-assets/source-jars/`, restart the game and press **[Download]** —
 assets are extracted locally without any network access.
 

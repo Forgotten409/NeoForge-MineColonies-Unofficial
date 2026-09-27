@@ -34,7 +34,7 @@ import com.ldtteam.minecolonies.MineColonies;
  * <h2>v2 — play-test #3 rule set</h2>
  * <p>v1 only walked {@code assets/minecolonies/models} + {@code blockstates} and had three
  * real bugs (fixed here, each verified against a full recursive diff of the dev tree vs
- * the official 1.1.1387 jar):</p>
+ * the official 1.1.1399 jar):</p>
  * <ul>
  *   <li><b>overrides landed outside the pack</b> — {@code copyOverride} resolved
  *       {@code models/item/spear.json} against the STORE ROOT instead of

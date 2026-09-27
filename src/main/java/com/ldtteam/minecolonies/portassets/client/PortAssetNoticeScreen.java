@@ -23,8 +23,13 @@ import com.ldtteam.structurize.storage.ClientStructurePackLoader.ClientLoadingSt
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.PlainTextButton;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
@@ -38,53 +43,67 @@ import org.jetbrains.annotations.Nullable;
  * text goes through {@code gui.text(...)} / {@code gui.centeredText(...)}; boxes through
  * {@code gui.fill(...)}.</p>
  *
- * <p>UX contract (hardened over five publish-jar play-tests):</p>
+ * <p>UX contract (hardened over five publish-jar play-tests; v4 = 0.4.6 feedback):</p>
  * <ul>
  *   <li>every label resolves through {@link PortAssetText} — live translations first,
  *       embedded English/Polish fallbacks second, so the screen is readable even when no
- *       lang file loaded at all. <b>PORT26 FIX (play-test #6 — "no text on the screen"):</b>
- *       every text color is a full ARGB value with the alpha byte set
- *       ({@code 0xFFFFFFFF}, not {@code 0xFFFFFF}) — {@code GuiGraphicsExtractor#text}
- *       silently drops any color whose alpha is zero
- *       ({@code if (ARGB.alpha(color) != 0)}), which is exactly what the old 24-bit
- *       literals did: the buttons (vanilla widgets) and the progress bar (fills with
- *       explicit {@code 0xFF..} colors) rendered, while the ENTIRE text block was
- *       invisible. Same class of bug in the vanilla port: container screens passed
- *       {@code 4210752} (0x404040, alpha 0) where vanilla passes {@code -12566464}
- *       (0xFF404040).</li>
- *   <li><b>v3 layout (play-test #5):</b> the text block is TOP-ANCHORED and word-wrapped
- *       ({@code Font#split}) with the button stack placed directly BELOW it — v2's fixed
- *       {@code height/2-118} anchor collided with the buttons once four namespaces went
- *       missing, which read as "there is no explanation text at all". A density tier
- *       (normal / compact {@code <340px} / ultra {@code <262px}) keeps everything inside
- *       the smallest legal GUI height, and the "what is this" explanation sits at the
- *       very top where players look first;</li>
+ *       lang file loaded at all. Every text color is a full ARGB value with the alpha byte
+ *       set ({@code 0xFFFFFFFF}) — {@code GuiGraphicsExtractor#text} silently drops any
+ *       color whose alpha is zero (play-test #6's "no text on the screen").</li>
+ *   <li><b>v4 layout:</b> the whole content block is vertically CENTERED (the v3
+ *       top-anchored block hugged the top edge on tall screens); the button hierarchy is
+ *       <b>two full buttons + one demoted text link</b> — [Download now] (primary,
+ *       keyboard-focused) and [Manual install] as the full-size secondary, while "play
+ *       without the art" became a small underlined link below the stack with an explicit
+ *       warning tooltip. Three same-size buttons read as "three equally valid choices",
+ *       which is not the message: downloading IS the intended path, manual install is the
+ *       offline escape hatch and skipping is the last resort. A density tier
+ *       (compact {@code <340px} / ultra {@code <262px}) keeps everything inside the
+ *       smallest legal GUI height.</li>
+ *   <li><b>v4 hard modal:</b> the screen consumes EVERY input event (mouse click, release,
+ *       drag, scroll, key press/release, char input). Whatever the engine (or a layered
+ *       screen implementation) would do with an unconsumed click, nothing can be pressed
+ *       "through" this overlay — the reported "title screen buttons clickable behind the
+ *       notice" class of bug is now structurally impossible. ESC still closes the screen
+ *       whenever it is safe to do so (never while a download is running).</li>
  *   <li>the provisioning run reports byte-level progress ("12.4 / 78.2 MB (16%) — 3.2 MB/s"),
  *       extraction file counts and conversion counts — all shown live on a PROGRESS BAR
  *       (the percent is parsed out of the status line, so the worker thread needs no
  *       client-side types); phase changes fall back to the animated indeterminate sweep
  *       (an idle full bar reads as "the game froze" — play-test #3);</li>
- *   <li>[Download now] disables itself (and [Skip]) while running; on failure it comes back
- *       as [Retry] with the error line above it;</li>
+ *   <li>network failures are shown as short, actionable, TRANSLATED lines ("no internet",
+ *       "download stalled — connection dropped", "server answered HTTP 500…") — see
+ *       {@code AssetProvisioner#friendlyError}; the full stack trace stays in the log;</li>
+ *   <li>[Download now] turns into [Retry] after a failure; the whole button stack is HIDDEN
+ *       while the worker runs (a clean progress view — v3's disabled grey pile only
+ *       invited clicking around);</li>
+ *   <li><b>v4 explicit exit:</b> every terminal state ends in a focused [Continue] button
+ *       (green "assets active" / amber "restart required") — the v3 auto-return raced the
+ *       player and reports described "no way out but ESC". ESC also works, but there is
+ *       always a visible, focusable way forward;</li>
  *   <li>on success the resource packs are reloaded ({@code Minecraft#reloadResourcePacks()})
  *       and the live repository is VERIFIED afterwards; the client structure-pack discovery
  *       is then RE-RUN (see {@link PortAssetStyleReload}) so the provisioned building
- *       styles are usable immediately — play-test #5's "no styles until a restart" report
- *       was the discovery-once-at-construction timing. The final status only turns green
- *       when the external style packs are verified REGISTERED; otherwise the screen STAYS
- *       with an explicit "restart the game" line — never a silent no-op;</li>
+ *       styles are usable immediately — the final status only turns green when the external
+ *       style packs are verified REGISTERED; otherwise the screen shows the explicit
+ *       "restart the game" line — never a silent no-op;</li>
  *   <li>[Manual install] shows the offline instructions INCLUDING the addon pack options
- *       (TownTalk voices, Byzantine + StyleColonies styles); [Skip] proceeds without
- *       assets (missing textures) and remembers the choice.</li>
+ *       (TownTalk voices, Byzantine + StyleColonies styles); the small "play without the
+ *       art" link starts the game without assets (missing textures — no crash, the notice
+ *       reappears on the next launch until the assets are provisioned) and remembers the
+ *       choice.</li>
  * </ul>
  */
 public class PortAssetNoticeScreen extends Screen
 {
-    private static final int BUTTON_WIDTH = 200;
+    private static final int BUTTON_WIDTH = Button.BIG_WIDTH;
     private static final int BUTTON_HEIGHT = Button.DEFAULT_HEIGHT;
 
     /** Vertical gap between the stacked buttons. */
     private static final int BUTTON_GAP = 10;
+
+    /** Height of the demoted "play without the art" text link (touch-friendly). */
+    private static final int LINK_HEIGHT = 16;
 
     /** Progress bar geometry (width matches the buttons). */
     private static final int BAR_HEIGHT = 10;
@@ -110,6 +129,25 @@ public class PortAssetNoticeScreen extends Screen
     /** Guards against double-starting the provisioning run. */
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
+    /**
+     * Layout phases — drive both the widget set (init) and the vertical centering.
+     * {@code APPLYING} spans the resource reload + style re-discovery window: the assets
+     * are on disk but not yet verified live, so there is no actionable button yet.
+     */
+    private enum Phase
+    {
+        /** Initial notice (or retry after a failure) — full button stack. */
+        NOTICE,
+        /** Worker thread provisioning — status + progress bar only. */
+        RUNNING,
+        /** Provisioned, reload/verification in flight — status (+ bar) only. */
+        APPLYING,
+        /** Verified terminal state — [Continue]. */
+        DONE,
+        /** Offline instructions view. */
+        MANUAL
+    }
+
     private final List<AssetNamespace> missing;
 
     /** Volatile status line, written by the worker thread, read by the render thread. */
@@ -121,6 +159,12 @@ public class PortAssetNoticeScreen extends Screen
     /** Set when the provisioning run finished successfully. */
     private volatile boolean finished = false;
 
+    /** Set when the last provisioning run failed (drives [Retry] and the red status). */
+    private volatile boolean failed = false;
+
+    /** Set once a terminal outcome is reached (verified / restart required). */
+    private volatile boolean terminal = false;
+
     /** True between the resource reload and the style re-discovery result. */
     private volatile boolean awaitingStyles = false;
 
@@ -130,15 +174,22 @@ public class PortAssetNoticeScreen extends Screen
     /** Manual-instructions view toggle. */
     private boolean showingManual = false;
 
-    /** The download/retry button (disabled while running). */
+    /** The primary button (Download / Retry / Continue, per phase). */
     @Nullable
-    private Button downloadButton;
+    private Button primaryButton;
 
-    /** The skip button (disabled while running). */
+    /** The manual-install button (hidden while running / applying / done). */
     @Nullable
-    private Button skipButton;
+    private Button manualButton;
 
-    /** Y of the status line, computed in {@link #init()} below the button stack. */
+    /** The demoted "play without the art" link. */
+    @Nullable
+    private Button skipLink;
+
+    /** Computed in {@link #init()}: y of the first text row. */
+    private int textY = 8;
+
+    /** Computed in {@link #init()}: y of the status line below the button stack. */
     private int statusY = -1;
 
     /**
@@ -187,6 +238,32 @@ public class PortAssetNoticeScreen extends Screen
         this.missing = missing;
     }
 
+    // ------------------------------------------------------------------ state
+
+    /**
+     * @return the current layout phase (see {@link Phase}).
+     */
+    private Phase phase()
+    {
+        if (showingManual)
+        {
+            return Phase.MANUAL;
+        }
+        if (RUNNING.get() && !finished)
+        {
+            return Phase.RUNNING;
+        }
+        if (finished && !terminal)
+        {
+            return Phase.APPLYING;
+        }
+        if (finished)
+        {
+            return Phase.DONE;
+        }
+        return Phase.NOTICE;
+    }
+
     // ------------------------------------------------------------------ layout
 
     /**
@@ -232,7 +309,7 @@ public class PortAssetNoticeScreen extends Screen
             return rows;
         }
 
-        // "what is this screen" — at the very top, always visible (play-test #5 request);
+        // "what is this screen" — directly under the title, always visible;
         // the density tiers drop the second line first, then fall back to the one-liner
         addWrapped(rows, ultra ? "portassets.screen.what.short" : "portassets.screen.what1", COLOR_GREY, width, 6);
         if (!compact)
@@ -265,7 +342,7 @@ public class PortAssetNoticeScreen extends Screen
             }
         }
 
-        // what each button does (the English explanation block, localized) — the short
+        // what the buttons do (the English explanation block, localized) — the short
         // variant keeps the essentials on ultra-tight screens
         if (ultra)
         {
@@ -338,7 +415,7 @@ public class PortAssetNoticeScreen extends Screen
      */
     private int textBlockHeight()
     {
-        int height = 8; // top margin
+        int height = 8; // top margin of the block
         for (final Row row : buildRows())
         {
             height += row.padBefore() + this.font.lineHeight + 2;
@@ -346,62 +423,130 @@ public class PortAssetNoticeScreen extends Screen
         return height;
     }
 
+    /**
+     * @param phase the layout phase.
+     * @param gap   the effective button gap.
+     * @return the vertical space the button stack needs (below the text block).
+     */
+    private int buttonStackHeight(final Phase phase, final int gap)
+    {
+        return switch (phase)
+        {
+            case MANUAL -> 6 + BUTTON_HEIGHT;
+            case NOTICE -> 8 + BUTTON_HEIGHT + gap + BUTTON_HEIGHT + gap + LINK_HEIGHT;
+            case DONE -> 8 + BUTTON_HEIGHT;
+            case RUNNING, APPLYING -> 0;
+        };
+    }
+
+    /**
+     * @param phase the layout phase.
+     * @return the vertical space the status + progress area needs (below the buttons).
+     */
+    private int statusAreaHeight(final Phase phase)
+    {
+        // status line + bar zone; the bar only shows while work is in flight
+        final int line = this.font.lineHeight + 4;
+        return (phase == Phase.MANUAL ? 0 : line + 6 + BAR_HEIGHT + 8);
+    }
+
     // ------------------------------------------------------------------ widgets
 
     @Override
     protected void init()
     {
+        final Phase phase = phase();
+        final int gap = this.height < ULTRA_HEIGHT ? 6 : BUTTON_GAP;
+
+        // vertically centered content column (v4 — the v3 top anchor hugged the top edge)
+        final int contentHeight = textBlockHeight() + buttonStackHeight(phase, gap) + statusAreaHeight(phase);
+        int y = Math.max(8, (this.height - contentHeight) / 2);
+        textY = y;
+        y += textBlockHeight();
+
+        primaryButton = null;
+        manualButton = null;
+        skipLink = null;
         statusY = -1;
 
-        if (showingManual)
+        switch (phase)
         {
-            final int backY = textBlockHeight() + 6;
-            addRenderableWidget(Button.builder(backLabel(), b -> {
-                    showingManual = false;
-                    rebuildWidgets();
-                })
-                .bounds(this.width / 2 - BUTTON_WIDTH / 2, backY, BUTTON_WIDTH, BUTTON_HEIGHT)
-                .build());
-            statusY = backY + BUTTON_HEIGHT + 8;
-            return;
+            case MANUAL ->
+            {
+                final int backY = y + 6;
+                primaryButton = addRenderableWidget(Button.builder(backLabel(), b -> {
+                        showingManual = false;
+                        rebuildWidgets();
+                    })
+                    .bounds(this.width / 2 - BUTTON_WIDTH / 2, backY, BUTTON_WIDTH, BUTTON_HEIGHT)
+                    .build());
+                setInitialFocus(primaryButton);
+            }
+            case NOTICE ->
+            {
+                final int buttonY = y + 8;
+                primaryButton = addRenderableWidget(Button.builder(downloadLabel(), b -> startDownload())
+                    .bounds(this.width / 2 - BUTTON_WIDTH / 2, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT)
+                    .build());
+                primaryButton.setTooltip(Tooltip.create(Component.literal(
+                    PortAssetText.format("portassets.screen.download.tooltip"))));
+
+                manualButton = addRenderableWidget(Button.builder(Component.literal(PortAssetText.format("portassets.screen.manual")), b -> {
+                        showingManual = true;
+                        rebuildWidgets();
+                    })
+                    .bounds(this.width / 2 - BUTTON_WIDTH / 2, buttonY + BUTTON_HEIGHT + gap, BUTTON_WIDTH, BUTTON_HEIGHT)
+                    .build());
+
+                // the demoted escape hatch: a small underlined text link, not a third
+                // same-size button — with an explicit warning tooltip
+                final int linkY = buttonY + (BUTTON_HEIGHT + gap) * 2;
+                final Component linkLabel = Component.literal(PortAssetText.format("portassets.screen.skip.link"));
+                skipLink = addRenderableWidget(new PlainTextButton(
+                    this.width / 2 - BUTTON_WIDTH / 2, linkY, BUTTON_WIDTH, LINK_HEIGHT, linkLabel, b -> {
+                        final PortAssetSettings settings = PortAssets.getSettings();
+                        settings.skipNotice = true;
+                        settings.save();
+                        onClose();
+                    }, this.font));
+                skipLink.setTooltip(Tooltip.create(Component.literal(
+                    PortAssetText.format("portassets.screen.skip.tooltip"))));
+
+                statusY = linkY + LINK_HEIGHT + 8;
+                setInitialFocus(primaryButton);
+            }
+            case DONE ->
+            {
+                final int buttonY = y + 8;
+                primaryButton = addRenderableWidget(Button.builder(continueLabel(), b -> onClose())
+                    .bounds(this.width / 2 - BUTTON_WIDTH / 2, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT)
+                    .build());
+                statusY = buttonY + BUTTON_HEIGHT + 10;
+                setInitialFocus(primaryButton);
+            }
+            case RUNNING, APPLYING ->
+            {
+                // a clean progress view: no buttons at all while work is in flight
+                statusY = y + 6;
+            }
         }
-
-        final boolean running = RUNNING.get();
-        final int buttonGap = this.height < ULTRA_HEIGHT ? 6 : BUTTON_GAP;
-        final int buttonY = textBlockHeight() + 8;
-
-        downloadButton = addRenderableWidget(Button.builder(downloadLabel(), b -> startDownload())
-            .bounds(this.width / 2 - BUTTON_WIDTH / 2, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT)
-            .build());
-        downloadButton.active = !running && !finished;
-
-        addRenderableWidget(Button.builder(Component.literal(PortAssetText.format("portassets.screen.manual")), b -> {
-                showingManual = true;
-                rebuildWidgets();
-            })
-            .bounds(this.width / 2 - BUTTON_WIDTH / 2, buttonY + BUTTON_HEIGHT + buttonGap, BUTTON_WIDTH, BUTTON_HEIGHT)
-            .build());
-
-        skipButton = addRenderableWidget(Button.builder(Component.literal(PortAssetText.format("portassets.screen.skip")), b -> {
-                final PortAssetSettings settings = PortAssets.getSettings();
-                settings.skipNotice = true;
-                settings.save();
-                onClose();
-            })
-            .bounds(this.width / 2 - BUTTON_WIDTH / 2, buttonY + (BUTTON_HEIGHT + buttonGap) * 2, BUTTON_WIDTH, BUTTON_HEIGHT)
-            .build());
-        skipButton.active = !running;
-
-        statusY = buttonY + (BUTTON_HEIGHT + buttonGap) * 3 + 6;
     }
 
     /**
-     * @return the download button label ("Download now" / "Retry" after a failure).
+     * @return the primary button label in the NOTICE phase ("Download now" / "Retry").
      */
     private Component downloadLabel()
     {
         return Component.literal(PortAssetText.format(
-            finished ? "portassets.screen.download" : (status.startsWith("!!") ? "portassets.screen.status.retry" : "portassets.screen.download")));
+            failed ? "portassets.screen.status.retry" : "portassets.screen.download"));
+    }
+
+    /**
+     * @return the focused terminal button label ("Continue").
+     */
+    private static Component continueLabel()
+    {
+        return Component.literal(PortAssetText.format("portassets.screen.continue"));
     }
 
     /**
@@ -412,7 +557,79 @@ public class PortAssetNoticeScreen extends Screen
         return Component.literal(PortAssetText.format("portassets.screen.back"));
     }
 
+    // ------------------------------------------------------------------ hard modal (v4)
+
+    /**
+     * v4 hard modal: every input event is consumed. MouseHandler/KeyboardHandler fall
+     * through to game handling when a screen returns {@code false} — whatever any engine
+     * layer does with that fall-through, nothing behind this overlay can ever be pressed
+     * "through" it. The widget handling still runs first (buttons keep working).
+     */
+    @Override
+    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick)
+    {
+        super.mouseClicked(event, doubleClick);
+        return true;
+    }
+
+    @Override
+    public boolean mouseReleased(final MouseButtonEvent event)
+    {
+        super.mouseReleased(event);
+        return true;
+    }
+
+    @Override
+    public boolean mouseDragged(final MouseButtonEvent event, final double dx, final double dy)
+    {
+        super.mouseDragged(event, dx, dy);
+        return true;
+    }
+
+    @Override
+    public boolean mouseScrolled(final double x, final double y, final double scrollX, final double scrollY)
+    {
+        super.mouseScrolled(x, y, scrollX, scrollY);
+        return true;
+    }
+
+    @Override
+    public boolean keyPressed(final KeyEvent event)
+    {
+        // ESC (when allowed) and focus/tab navigation still run through super
+        super.keyPressed(event);
+        return true;
+    }
+
+    @Override
+    public boolean keyReleased(final KeyEvent event)
+    {
+        super.keyReleased(event);
+        return true;
+    }
+
+    @Override
+    public boolean charTyped(final CharacterEvent event)
+    {
+        super.charTyped(event);
+        return true;
+    }
+
     // ------------------------------------------------------------------ provisioning
+
+    /**
+     * Rebuilds the widget layout only while this screen is still the ACTIVE screen —
+     * the reload overlay / ESC may have replaced it in the meantime, and touching a
+     * dead screen's widgets would re-create them on top of whatever replaced us.
+     */
+    private void rebuildIfActive()
+    {
+        final Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft != null && minecraft.screen == this)
+        {
+            rebuildWidgets();
+        }
+    }
 
     /**
      * Starts the background provisioning run (guarded — never twice at once).
@@ -423,18 +640,14 @@ public class PortAssetNoticeScreen extends Screen
         {
             return;
         }
-        if (downloadButton != null)
-        {
-            downloadButton.active = false;
-        }
-        if (skipButton != null)
-        {
-            skipButton.active = false;
-        }
+        failed = false;
+        finished = false;
+        terminal = false;
         awaitingStyles = false;
         stylesResult = -1;
         progressPercent = -1;
         status = PortAssetText.format("portassets.screen.status.starting");
+        rebuildWidgets(); // switch to the clean RUNNING view
 
         WORKER.submit(() -> {
             final String error = AssetProvisioner.provisionMissing(statusLine -> {
@@ -479,18 +692,11 @@ public class PortAssetNoticeScreen extends Screen
         }
         else
         {
-            status = "!! " + error;
+            failed = true;
             progressPercent = -1;
+            status = error;
             MineColonies.LOGGER.warn("port-assets: provisioning failed: {}", error);
-            if (downloadButton != null)
-            {
-                downloadButton.active = true;
-                downloadButton.setMessage(downloadLabel());
-            }
-            if (skipButton != null)
-            {
-                skipButton.active = true;
-            }
+            rebuildIfActive(); // NOTICE view with [Retry]
         }
     }
 
@@ -500,8 +706,8 @@ public class PortAssetNoticeScreen extends Screen
      * re-registers itself on every {@code PackRepository#reload()} (see
      * {@code PortAssetPackSources}'s lifetime contract), so a missing entry means
      * something unexpected happened and the player genuinely needs a restart. The screen
-     * only closes itself when everything verified; otherwise it stays up with the
-     * actionable "restart" line (play-test #4: silent no-ops are the worst failure mode).
+     * ends in the explicit [Continue] state either way (v4: no silent auto-close, no
+     * dead-end — the reported "no way out but ESC").
      */
     private void afterReload()
     {
@@ -532,8 +738,9 @@ public class PortAssetNoticeScreen extends Screen
 
         if (!allActive)
         {
+            terminal = true;
             status = PortAssetText.format("portassets.screen.status.restart");
-            reenableButtons();
+            rebuildIfActive(); // DONE view, amber "restart required" + [Continue]
             return;
         }
 
@@ -549,9 +756,10 @@ public class PortAssetNoticeScreen extends Screen
         }
         else
         {
+            terminal = true;
             status = PortAssetText.format("portassets.screen.status.active");
             MineColonies.LOGGER.info("port-assets: all provisioned packs verified active in the live repository");
-            returnToTitle();
+            rebuildIfActive(); // DONE view, green + [Continue]
         }
     }
 
@@ -566,12 +774,12 @@ public class PortAssetNoticeScreen extends Screen
               && ClientStructurePackLoader.loadingState != ClientLoadingState.LOADING)
         {
             awaitingStyles = false;
+            terminal = true;
             if (PortAssetStyleReload.verify())
             {
                 stylesResult = 0;
                 status = PortAssetText.format("portassets.screen.status.stylesactive");
                 MineColonies.LOGGER.info("port-assets: external style packs verified registered — no restart needed");
-                returnToTitle();
             }
             else
             {
@@ -579,36 +787,8 @@ public class PortAssetNoticeScreen extends Screen
                 status = PortAssetText.format("portassets.screen.status.stylesrestart");
                 MineColonies.LOGGER.warn("port-assets: external style packs are not registered — a game restart "
                     + "is required to activate the styles");
-                reenableButtons();
             }
-        }
-    }
-
-    /**
-     * Re-enables the (still wired) buttons after a "restart needed" outcome.
-     */
-    private void reenableButtons()
-    {
-        if (downloadButton != null)
-        {
-            downloadButton.active = true;
-        }
-        if (skipButton != null)
-        {
-            skipButton.active = true;
-        }
-    }
-
-    /**
-     * Returns to the title screen — only when no world is loaded and this screen is still
-     * the current one.
-     */
-    private void returnToTitle()
-    {
-        final Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null && minecraft.screen instanceof PortAssetNoticeScreen)
-        {
-            minecraft.setScreen(new TitleScreen());
+            rebuildIfActive(); // DONE view (green or amber) + [Continue]
         }
     }
 
@@ -627,10 +807,10 @@ public class PortAssetNoticeScreen extends Screen
         }
         final var font = minecraft.font;
 
-        // top-anchored, word-wrapped text block (see the class javadoc for the v3 layout)
+        // vertically centered, word-wrapped text block (see the class javadoc for v4)
         final List<Row> rows = buildRows();
         final int columnX = this.width / 2 - wrapWidth() / 2;
-        int y = 8;
+        int y = textY;
         for (final Row row : rows)
         {
             y += row.padBefore();
@@ -646,15 +826,18 @@ public class PortAssetNoticeScreen extends Screen
         }
 
         // status line + progress bar below the button stack
-        if (status != null && !status.isEmpty())
+        if (status != null && !status.isEmpty() && !showingManual)
         {
-            final int statusY = this.statusY >= 0 ? this.statusY : this.height - 2 * (font.lineHeight + 6) - BAR_HEIGHT;
-            final boolean failed = status.startsWith("!!");
-            final boolean green = finished && !awaitingStyles;
-            gui.centeredText(font, Component.literal(failed ? status.substring(2) : status), this.width / 2, statusY,
-                green ? COLOR_GREEN : (failed ? COLOR_RED : COLOR_YELLOW));
+            final Phase phase = phase();
+            final int statusY = this.statusY >= 0 ? this.statusY
+                : this.height - 2 * (font.lineHeight + 6) - BAR_HEIGHT;
+            final int color = failed ? COLOR_RED
+                : (phase == Phase.DONE ? (stylesResult == 1 ? COLOR_AMBER : COLOR_GREEN)
+                : (phase == Phase.NOTICE ? COLOR_LIGHT : COLOR_YELLOW));
+            gui.centeredText(font, Component.literal(status), this.width / 2, statusY, color);
 
-            if (RUNNING.get() && !finished)
+            final boolean workInFlight = phase == Phase.RUNNING || phase == Phase.APPLYING;
+            if (workInFlight)
             {
                 final int barY = statusY + font.lineHeight + 6;
                 final int barX0 = this.width / 2 - BUTTON_WIDTH / 2;
@@ -691,6 +874,7 @@ public class PortAssetNoticeScreen extends Screen
     @Override
     public boolean shouldCloseOnEsc()
     {
+        // never abandon a running download; afterwards ESC is the keyboard twin of [Continue]
         return !RUNNING.get() || finished;
     }
 }

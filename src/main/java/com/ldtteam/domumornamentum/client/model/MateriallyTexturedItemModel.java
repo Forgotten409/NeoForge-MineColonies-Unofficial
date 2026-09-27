@@ -1,5 +1,6 @@
 package com.ldtteam.domumornamentum.client.model;
 
+import com.google.common.base.Suppliers;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
@@ -13,6 +14,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
 import net.minecraft.client.renderer.item.ItemModel;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
@@ -20,9 +22,9 @@ import net.minecraft.client.renderer.item.ModelRenderProperties;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ResolvedModel;
 import net.minecraft.client.resources.model.ResolvableModel;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.resources.model.geometry.QuadCollection;
 import net.minecraft.client.resources.model.sprite.TextureSlots;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -40,6 +42,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+
+import org.joml.Vector3fc;
 
 /**
  * The materially textured item model — PORT 26.1.2.
@@ -98,11 +103,19 @@ public class MateriallyTexturedItemModel implements ItemModel
 
     /**
      * One baked geometry (base or variant): placeholder quads + the per-variant retexture cache.
+     *
+     * <p>PORT26 (0.4.3): carries the memoized {@code extents} supplier like vanilla's
+     * {@link CuboidItemModelWrapper} — retexturing only swaps sprites/UVs, the quad positions
+     * are shared, so one extents array per variant serves every material data.
+     * {@code update()} passes it to {@code LayerRenderState#setExtents}; vanilla uses the
+     * extents for item bounding boxes (shelf rendering, dropped-item merging, oversized-in-GUI
+     * detection) and the port previously left them empty (0×0×0 box).</p>
      */
     private record BakedVariant(
       Identifier location,
       QuadCollection quads,
       boolean ambientOcclusion,
+      Supplier<Vector3fc[]> extents,
       Cache<MaterialTextureData, QuadCollection> retexturedCache)
     {
         static BakedVariant bake(final ModelBaker baker, final Identifier location, final ResolvedModel resolvedModel)
@@ -110,12 +123,13 @@ public class MateriallyTexturedItemModel implements ItemModel
             final TextureSlots textureSlots = resolvedModel.getTopTextureSlots();
             final QuadCollection quads = resolvedModel.bakeTopGeometry(textureSlots, baker,
               net.minecraft.client.renderer.block.dispatch.Variant.SimpleModelState.DEFAULT.asModelState());
+            final Supplier<Vector3fc[]> extents = Suppliers.memoize(() -> CuboidItemModelWrapper.computeExtents(quads.getAll()));
             final Cache<MaterialTextureData, QuadCollection> cache = CacheBuilder.newBuilder()
               .expireAfterAccess(2, TimeUnit.MINUTES)
               .concurrencyLevel(4)
               .maximumSize(1000)
               .build();
-            return new BakedVariant(location, quads, resolvedModel.getTopAmbientOcclusion(), cache);
+            return new BakedVariant(location, quads, resolvedModel.getTopAmbientOcclusion(), extents, cache);
         }
     }
 
@@ -201,7 +215,14 @@ public class MateriallyTexturedItemModel implements ItemModel
                 }
                 final ItemStackRenderState.LayerRenderState layer = output.newLayer();
                 renderProperties.applyToLayer(layer, displayContext);
+                layer.setUsesBlockLight(true); // see the note at the retextured layer below
                 layer.prepareQuadList().addAll(variant.quads().getAll());
+                // PORT26 (0.4.3): vanilla parity (CuboidItemModelWrapper) — extents + animated flag
+                layer.setExtents(variant.extents());
+                if (variant.quads().hasMaterialFlag(BakedQuad.FLAG_ANIMATED))
+                {
+                    output.setAnimated();
+                }
                 return;
             }
         }
@@ -220,12 +241,33 @@ public class MateriallyTexturedItemModel implements ItemModel
 
         final var layer = output.newLayer();
         renderProperties.applyToLayer(layer, displayContext);
+        // PORT26 FIX v4 (0.4.4, GUI items pale/flat — "blade, szare, bez cieni i kontrastu"):
+        // DO items are 3D block-shaped models — in GUI they must use the BLOCK light setup
+        // (Lighting.Entry.ITEMS_3D: two directional lights shading the faces by normal),
+        // exactly like vanilla block items (their models inherit "gui_light": "side" from
+        // minecraft:block/block). usesBlockLight comes from the resolved model's gui_light —
+        // the default IS side, but any "gui_light": "front" anywhere in the parent chain
+        // (or a future loader change) silently downgrades DO items to ITEMS_FLAT: flat,
+        // washed-out, contrast-less icons. This is forced here — a materially textured
+        // block item is always block-lit, so the fallback can never regress it.
+        layer.setUsesBlockLight(true);
         layer.setParticleMaterial(RetexturedQuadBuilder.retexturedParticle(textureData, renderProperties.particleMaterial()));
 
         // retexture the placeholder geometry for this stack — cached per texture data per variant
         // (update() runs every frame; the retexture itself only happens on data changes)
         final QuadCollection retextured = buildRetextured(variant, textureData, texturedBlock);
         layer.prepareQuadList().addAll(retextured.getAll());
+
+        // PORT26 (0.4.3): vanilla parity (CuboidItemModelWrapper#update) — the layer needs the
+        // geometry extents (retexturing keeps the source quad positions, so the variant extents
+        // are exact), and the render state must be flagged animated when any sprite is animated
+        // (water/lava-framed DO blocks) — otherwise the GUI item atlas caches the slot forever
+        // with a frozen animation frame (vanilla checks quads.hasMaterialFlag(FLAG_ANIMATED)).
+        layer.setExtents(variant.extents());
+        if (retextured.hasMaterialFlag(BakedQuad.FLAG_ANIMATED))
+        {
+            output.setAnimated();
+        }
 
         // compute tint layers for every encoded tint index present in the quads;
         // every quad of a component shares its tint index — resolve each distinct index once
@@ -247,6 +289,7 @@ public class MateriallyTexturedItemModel implements ItemModel
                 }
             }
         }
+
     }
 
     /**
@@ -330,6 +373,16 @@ public class MateriallyTexturedItemModel implements ItemModel
      * default color (vanilla {@code BlockStateModelWrapper#updateTints} uses exactly this when
      * rendering tinted block models as items; e.g. vanilla's own leaves item tints are the default
      * foliage color constants).
+     *
+     * <p>PORT26 (0.4.3): batch 11 resolved the batch-8 NPE by sampling the REAL client level at
+     * {@code BlockPos.ZERO} — but that is the <em>world</em> tint (biome color at world origin),
+     * not the <em>item</em> tint. Vanilla items in GUI always show the constant in-hand color
+     * ({@code color(state)}): a grass block item is the default grass green, never the swamp
+     * olive that happens to cover (0,0,0). In many biomes (swamp / dark forest / taiga) the
+     * world-sampled color is significantly darker, so DO items textured with grass/foliage-tinted
+     * components came out dark and muddy in every inventory slot. This now matches vanilla
+     * exactly: the constant in-hand color, try/catch-guarded so a tint failure can never kill
+     * item rendering.</p>
      */
     private static int resolveItemTint(final MaterialTextureData textureData, final IMateriallyTexturedBlock block, final int tintLayer)
     {
@@ -358,21 +411,15 @@ public class MateriallyTexturedItemModel implements ItemModel
         {
             return -1;
         }
-        // PORT26 (batch 11): NEVER call a tint source with a null level. World-aware sources
-        // (foliage/grass/water — BlockTintSources) dereference the level inside colorInWorld and
-        // NPE in item context. The batch-8 route (source.color(state)) still landed in
-        // colorInWorld(state, null, null) on the user's NeoForge build (crash: creative inventory
-        // -> resolveItemTint -> BiomeColors.getAverageFoliageColor NPE) — the interface default
-        // just forwards. Instead: resolve with the REAL client level (biome-accurate, matching how
-        // the contained block tints in the world around the player), and hard-guard with
-        // try/catch so a tint failure can never kill item rendering again.
-        final ClientLevel level = Minecraft.getInstance().level;
+        // PORT26 (0.4.3): vanilla-parity item tint — the constant in-hand color, exactly what
+        // vanilla's BlockStateModelWrapper#updateTints uses for tinted block items in GUI.
+        // Never the biome-sampled world color (dark in swamp/dark-forest/taiga biomes — that was
+        // the "items look dark and bland in every inventory" report). The interface default
+        // colorInWorld(state, level, pos) just forwards to color(state) unless overridden, and
+        // the world-aware overrides are the ones that NPE'd in batch 8 — so calling color()
+        // directly is both the vanilla behavior and the safe one. Hard-guarded regardless.
         try
         {
-            if (level != null)
-            {
-                return source.colorInWorld(containedState, level, BlockPos.ZERO);
-            }
             return source.color(containedState);
         }
         catch (final Exception e)

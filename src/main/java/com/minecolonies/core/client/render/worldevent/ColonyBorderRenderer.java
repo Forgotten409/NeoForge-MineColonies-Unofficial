@@ -110,7 +110,10 @@ public class ColonyBorderRenderer
         final Map<Integer, IColour> colonyColours = new HashMap<>();
         final boolean useColonyColour = IMinecoloniesAPI.getInstance().getConfig().getClient().colonyteamborders.get();
 
-        final ColouredVertexConsumer buf = new ColouredVertexConsumer(ctx.bufferSource.getBuffer(WorldRenderMacros.LINES));
+        // PORT26-compat (Iris & shader packs): routes to the vanilla lines()
+        // fallback (pair-adapted normals) when a shader pack is active — keeps
+        // the colony border lines visible under shaders.
+        final ColouredVertexConsumer buf = new ColouredVertexConsumer(WorldRenderMacros.getLinesBuffer(ctx.bufferSource));
         mapToDraw.forEach((chunkPos, colonyId) -> {
             if (colonyId == 0 || chunkPos.x() <= playerChunkPos.x() - playerRenderDist || chunkPos.x() >= playerChunkPos.x() + playerRenderDist
                 || chunkPos.z() <= playerChunkPos.z() - playerRenderDist || chunkPos.z() >= playerChunkPos.z() + playerRenderDist)

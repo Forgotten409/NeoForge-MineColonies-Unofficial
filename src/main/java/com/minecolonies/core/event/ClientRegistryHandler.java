@@ -42,7 +42,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterItemDecorationsEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
-import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 import net.neoforged.neoforge.client.event.RegisterSpecialModelRendererEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -390,15 +389,9 @@ public class ClientRegistryHandler
         ModKeyMappings.register(event);
     }
 
-    /**
-     * PORT26: custom render pipelines must be registered on the mod bus before first use
-     * (citizen status icon pipeline of the mod render types).
-     */
-    @SubscribeEvent
-    public static void registerRenderPipelines(final RegisterRenderPipelinesEvent event)
-    {
-        com.minecolonies.core.client.render.worldevent.RenderTypes.registerPipelines(event);
-    }
+    // PORT26 FIX v5 (0.4.5): the RegisterRenderPipelinesEvent handler was dropped — the
+    // citizen status icon pipeline (the only custom pipeline the mod render types had) was
+    // replaced with vanilla RenderTypes#textSeeThrough, which needs no registration.
 
     /**
      * PORT26: the spear item renderer (replacement for the removed

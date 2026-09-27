@@ -149,6 +149,24 @@ public abstract class WorldRenderMacros
             {
                 Log.getLogger().error("Structurize world render failed — skipping this frame's overlay rendering", error);
             }
+
+            // PORT26-compat (Iris & shader packs): flush this context's fallback geometry
+            // (vanilla-type lines + moving-block overlays emitted while a pack is active)
+            // while we still pin the level model-view matrix — the draws then composite
+            // through the pack exactly like vanilla's debug lines. Every context rendering
+            // through this base class (structurize WorldRenderContext, minecolonies
+            // WorldEventContext) is covered; RenderTypes#finishBuffer is the safety net.
+            if (ShaderPackCompat.isShaderPackActive())
+            {
+                try
+                {
+                    ShaderFallbackRenderer.flush(e);
+                }
+                catch (final Exception | LinkageError error)
+                {
+                    Log.getLogger().error("Structurize shader-pack fallback flush failed — skipping this frame's overlay rendering", error);
+                }
+            }
         }
         finally
         {
@@ -414,6 +432,19 @@ public abstract class WorldRenderMacros
     {
         if (alpha == 0)
         {
+            return;
+        }
+
+        // PORT26-compat (Iris & shader packs): our position-color line pipelines are
+        // not part of any shader pack's program override list — under Iris the draws
+        // are erased by the pack's composite ("lines render transparent / invisible").
+        // Fall back to vanilla lines() (pack-supported) in the deferred fallback
+        // buffers, flushed after the pack composite at AfterLevel. The passed
+        // renderType (incl. the glint / depth-invert variants) degrades to plain
+        // visible lines in that mode.
+        if (ShaderPackCompat.isShaderPackActive())
+        {
+            renderVanillaLineBox(minX, minY, minZ, maxX, maxY, maxZ, red, green, blue, alpha, lineWidth);
             return;
         }
 
@@ -869,6 +900,65 @@ public abstract class WorldRenderMacros
         buf.addVertex(pose, minX, maxY, maxZ).setColor(red, green, blue, alpha);
     }
 
+    /**
+     * PORT26-compat (Iris &amp; shader packs): plain 12-edge wireframe box on
+     * vanilla {@code RenderTypes#lines()} (GPU-expanded, pack-supported),
+     * written through the {@link LineSegmentAdapter} into the deferred
+     * fallback buffers. Used instead of the pre-expanded triangle boxes
+     * whenever a shader pack is active — see {@link ShaderFallbackRenderer}.
+     *
+     * @param lineWidth world-unit width from the caller, mapped to a pixel width
+     */
+    private void renderVanillaLineBox(final float minX, final float minY, final float minZ,
+        final float maxX, final float maxY, final float maxZ,
+        final int red, final int green, final int blue, final int alpha, final float lineWidth)
+    {
+        final VertexConsumer buf = new LineSegmentAdapter(
+            ShaderFallbackRenderer.buffers().getBuffer(ShaderFallbackRenderer.linesType()),
+            Math.max(2.0F, lineWidth * 80.0F));
+        final Pose pose = poseStack.last();
+
+        // 12 edges, each as one pair of vertices (the adapter derives normals)
+        addVanillaLinePair(buf, pose, minX, minY, minZ, maxX, minY, minZ, red, green, blue, alpha);
+        addVanillaLinePair(buf, pose, minX, maxY, minZ, maxX, maxY, minZ, red, green, blue, alpha);
+        addVanillaLinePair(buf, pose, minX, minY, maxZ, maxX, minY, maxZ, red, green, blue, alpha);
+        addVanillaLinePair(buf, pose, minX, maxY, maxZ, maxX, maxY, maxZ, red, green, blue, alpha);
+
+        addVanillaLinePair(buf, pose, minX, minY, minZ, minX, maxY, minZ, red, green, blue, alpha);
+        addVanillaLinePair(buf, pose, maxX, minY, minZ, maxX, maxY, minZ, red, green, blue, alpha);
+        addVanillaLinePair(buf, pose, minX, minY, maxZ, minX, maxY, maxZ, red, green, blue, alpha);
+        addVanillaLinePair(buf, pose, maxX, minY, maxZ, maxX, maxY, maxZ, red, green, blue, alpha);
+
+        addVanillaLinePair(buf, pose, minX, minY, minZ, minX, minY, maxZ, red, green, blue, alpha);
+        addVanillaLinePair(buf, pose, maxX, minY, minZ, maxX, minY, maxZ, red, green, blue, alpha);
+        addVanillaLinePair(buf, pose, minX, maxY, minZ, minX, maxY, maxZ, red, green, blue, alpha);
+        addVanillaLinePair(buf, pose, maxX, maxY, minZ, maxX, maxY, maxZ, red, green, blue, alpha);
+    }
+
+    private static void addVanillaLinePair(final VertexConsumer buf, final Pose pose,
+        final float x1, final float y1, final float z1, final float x2, final float y2, final float z2,
+        final int red, final int green, final int blue, final int alpha)
+    {
+        buf.addVertex(pose, x1, y1, z1).setColor(red, green, blue, alpha);
+        buf.addVertex(pose, x2, y2, z2).setColor(red, green, blue, alpha);
+    }
+
+    /**
+     * PORT26-compat (Iris &amp; shader packs): line buffer for raw endpoint-pair
+     * emission. Without shaders this is the structurize LINES buffer; with an
+     * active shader pack it is vanilla {@code lines()} in the deferred fallback
+     * buffers, wrapped in {@link LineSegmentAdapter} so existing
+     * addVertex/setColor pair emission keeps working.
+     */
+    public static VertexConsumer getLinesBuffer(final BufferSource bufferSource)
+    {
+        if (ShaderPackCompat.isShaderPackActive())
+        {
+            return new LineSegmentAdapter(ShaderFallbackRenderer.buffers().getBuffer(ShaderFallbackRenderer.linesType()));
+        }
+        return bufferSource.getBuffer(RenderTypes.LINES);
+    }
+
     public final void renderBox(final RenderType renderType,
         final BlockPos posA,
         final BlockPos posB,
@@ -1218,6 +1308,21 @@ public abstract class WorldRenderMacros
         public static void finishBuffer(final RenderLevelStageEvent event)
         {
             final MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+
+            // PORT26-compat (Iris & shader packs): with an active pack the overlays live
+            // in the fallback buffers (vanilla types) and are normally flushed at the end
+            // of WorldRenderMacros#renderWorldLastEvent — this is the safety net for any
+            // geometry written after those contexts ran (same LOWEST-priority slot the
+            // custom line buffers use without shaders). endBatch on already-flushed types
+            // is a no-op.
+            if (ShaderPackCompat.isShaderPackActive())
+            {
+                if (event instanceof RenderLevelStageEvent.AfterOpaqueFeatures)
+                {
+                    ShaderFallbackRenderer.flush(event);
+                }
+                return;
+            }
 
             // PORT26: Stage enum removed — old AFTER_BLOCK_ENTITIES maps to AfterOpaqueFeatures
             if (event instanceof RenderLevelStageEvent.AfterOpaqueFeatures)

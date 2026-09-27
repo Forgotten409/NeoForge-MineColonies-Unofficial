@@ -99,11 +99,32 @@ public class FemaleBuilderModel extends CitizenModel
         return LayerDefinition.create(meshdefinition, 128, 64);
     }
 
+    /**
+     * The Blockbench "arm resting on the toolbag" tilt baked into the right arm's
+     * PartPose (z = 0.3491 rad ≈ 20° outward, onto the bag at the right hip).
+     * PORT26 FIX (floating resting arm): 1.21.x HumanoidModel#setupAnim zeroed
+     * rightArm.zRot every frame, so this tilt only ever showed when a mod re-applied
+     * it. The 26.1.2 render-state pipeline instead resets every part to its baked
+     * initial pose (Model#setupAnim → resetPose) and never zeroes arm zRot — so the
+     * resting tilt now persists 24/7, even when the toolbag below it is hidden
+     * (night/sleep), leaving the hand floating in mid-air. We cancel exactly the baked
+     * tilt whenever the bag is hidden, by subtraction, so animation deltas added on top
+     * by super (attack swing, swim, idle bobbing) are preserved.
+     */
+    private static final float TOOLBAG_REST_ARM_Z_ROT = 0.3491F;
+
     @Override
     public void setupAnim(@NotNull final CitizenRenderState state)
     {
         super.setupAnim(state);
-        body.getChild("toolbag").visible = isWorking(state);
-        head.getChild("Cap").visible = isWorking(state) && displayHat(state);
+        final boolean working = isWorking(state);
+        body.getChild("toolbag").visible = working;
+        head.getChild("Cap").visible = working && displayHat(state);
+
+        if (!working)
+        {
+            // no toolbag → no resting pose: hang the arm at the side like 1.21.x did
+            rightArm.zRot -= TOOLBAG_REST_ARM_Z_ROT;
+        }
     }
 }

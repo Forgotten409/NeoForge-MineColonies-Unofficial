@@ -30,7 +30,7 @@ import net.neoforged.neoforge.common.NeoForge;
  * <p>Consequently the loader externalizes FOUR namespaces (all ARR, all fetched at runtime
  * from their official CurseForge channels — never bundled):</p>
  * <ul>
- *   <li><b>minecolonies</b> — {@code minecolonies-1.1.1387-1.21.1-snapshot} (CurseForge /
+ *   <li><b>minecolonies</b> — {@code minecolonies-1.1.1399-1.21.1-snapshot} (CurseForge /
  *       forgecdn direct link — stable, no auth). Its jar also carries the mixed
  *       {@code data/c/**}, {@code data/dynamictrees/**}, {@code data/neoforge/**} and
  *       {@code data/minecraft/**} contributions (tags merge additively across packs, so
@@ -77,8 +77,8 @@ public final class PortAssets
         new AssetNamespace(
             "minecolonies",
             "MineColonies (textures, models, sounds, lang)",
-            "https://mediafilez.forgecdn.net/files/8872/247/minecolonies-1.1.1387-1.21.1-snapshot.jar",
-            "minecolonies-1.1.1387-1.21.1-snapshot.jar",
+            "https://mediafilez.forgecdn.net/files/8986/260/minecolonies-1.1.1399-1.21.1-snapshot.jar",
+            "minecolonies-1.1.1399-1.21.1-snapshot.jar",
             "https://codeload.github.com/ldtteam/minecolonies/tar.gz/refs/heads/version/1.21",
             null,
             null,

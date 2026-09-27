@@ -35,6 +35,28 @@ repositories {
             includeGroup 'info.journeymap'   // tu znowu hostuje API v2 (zweryfikowane)
         }
     }
+
+    maven {
+        name = 'cursemaven'
+        url = 'https://cursemaven.com'
+        // proxies official CurseForge files by numeric id — used ONLY for the
+        // dev-time compat dependencies that have no official maven (Dynamic Trees,
+        // the full JourneyMap mod). Nothing from here ends up in the published jar;
+        // these mods stay optional runtime relations for players.
+        content {
+            includeGroup 'curse.maven'
+        }
+    }
+    maven {
+        name = 'modrinth'
+        url = 'https://api.modrinth.com/maven'
+        // dev-time only: Iris + Sodium for NeoForge 26.1.2 (shader-pack testing of
+        // the ShaderPackCompat fallbacks). Nothing from here ends up in the
+        // published jar — both stay optional client-side mods for players.
+        content {
+            includeGroup 'maven.modrinth'
+        }
+    }
 }
 base {
     archivesName = mod_id
@@ -108,6 +130,9 @@ dependencies {
     // Dynamic Trees: klasy API są w jarze moda (nie ma mavena dla DT 26.1.x)
     compileOnly files("libs/dynamictrees-neoforge-26.1.2-1.8.0.jar")
     localRuntime files("libs/dynamictrees-neoforge-26.1.2-1.8.0.jar")
+
+    localRuntime "maven.modrinth:iris:1.11.4+26.1-neoforge"
+    localRuntime "maven.modrinth:sodium:mc26.1.2-0.9.2-neoforge"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

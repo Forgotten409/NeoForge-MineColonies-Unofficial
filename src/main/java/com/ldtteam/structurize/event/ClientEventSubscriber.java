@@ -7,6 +7,7 @@ import com.ldtteam.structurize.api.constants.Constants;
 import com.ldtteam.structurize.client.BlueprintHandler;
 import com.ldtteam.structurize.client.ModKeyMappings;
 import com.ldtteam.structurize.client.gui.WindowExtendedBuildTool;
+import com.ldtteam.structurize.util.WorldRenderMacros;
 import com.ldtteam.structurize.items.ItemScanTool;
 import com.ldtteam.structurize.network.messages.ItemMiddleMouseMessage;
 import com.ldtteam.structurize.network.messages.ScanToolTeleportMessage;
@@ -72,6 +73,13 @@ public class ClientEventSubscriber
     {
         WorldRenderContext.INSTANCE.renderWorldLastEvent(event);
     }
+
+    // PORT26-compat (Iris & shader packs): the old AfterLevel flush subscription was
+    // removed — drawing after the frame graph's declared passes corrupted the main
+    // target (black fragments) and the re-applied camera rotation double-rotated the
+    // overlays. The fallback buffers are now flushed mid-frame at the end of
+    // WorldRenderMacros#renderWorldLastEvent (plus the finishBuffer safety net), with
+    // the exact model-view matrix the stage event carries. See ShaderFallbackRenderer.
 
     /**
      * PORT26: new entry point — 26.1 renders entities/block entities from render states.

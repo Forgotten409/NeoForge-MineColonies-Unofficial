@@ -54,7 +54,6 @@
   "portassets.screen.title": "MineColonies port — external assets",
   "portassets.screen.download": "Download now",
   "portassets.screen.manual": "Manual install",
-  "portassets.screen.skip": "Skip (missing textures)",
   "portassets.screen.back": "Back",
   "portassets.screen.status.starting": "Starting download…",
   "portassets.screen.status.done": "Done — applying resource packs…",
@@ -93,7 +92,7 @@
   "portassets.status.converting": "Converting to the 26.1 formats… %d file(s)",
   "portassets.status.ready": "%s ready.",
   "portassets.screen.explain1": "[Download now] downloads the packs listed above into <game-dir>/port-assets/ and activates them immediately — no restart needed.",
-  "portassets.screen.explain2": "[Manual install] shows the offline instructions; [Skip] starts the game without the art (missing textures).",
+  "portassets.screen.explain2": "No internet, or downloads keep failing? [Manual install] shows the offline way. The small link below the buttons starts the game without the art (missing textures — no crash).",
   "portassets.screen.status.active": "Assets active — no restart needed.",
   "portassets.screen.status.restart": "Downloaded — restart the game to activate the packs.",
   "portassets.screen.what1": "This port ships without the original MineColonies art and data (ARR license).",
@@ -103,5 +102,13 @@
   "portassets.screen.status.stylesactive": "Assets + building styles active — no restart needed.",
   "portassets.screen.status.stylesrestart": "Packs active — building styles appear after a game restart.",
   "portassets.screen.what.short": "Port without the original ARR art — the buttons below fetch it:",
-  "portassets.screen.explain.short": "[Download now] fetches the packs above and activates them immediately — no restart."
+  "portassets.screen.explain.short": "[Download now] fetches the packs above and activates them immediately — no restart.",
+  "portassets.screen.skip.link": "Play without the art (not recommended)",
+  "portassets.screen.skip.tooltip": "The game runs, but MineColonies blocks and items show missing textures and the building styles are absent.\\nThis notice reappears on every launch until the assets are provided.",
+  "portassets.screen.download.tooltip": "Fetches the packs listed above from the official CurseForge pages into <game-dir>/port-assets/ and activates them immediately — no restart needed.",
+  "portassets.screen.continue": "Continue",
+  "portassets.error.offline": "No internet connection or the network failed — check your connection and press Retry.",
+  "portassets.error.stall": "The connection dropped mid-download (no data for 30 s) — press Retry.",
+  "portassets.error.http": "The download server answered: %s — try again later, or use [Manual install].",
+  "portassets.error.interrupted": "The download was interrupted."
 }

@@ -9,12 +9,15 @@ import com.minecolonies.api.colony.IVisitorData;
 import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.buildings.ModBuildings;
 import com.minecolonies.api.colony.buildings.modules.*;
+import com.minecolonies.api.colony.buildings.modules.settings.ISettingKey;
 import com.minecolonies.api.colony.buildings.modules.stat.IStat;
 import com.minecolonies.api.colony.interactionhandling.ChatPriority;
 import com.minecolonies.api.sounds.TavernSounds;
 import com.minecolonies.api.util.MathUtils;
 import com.minecolonies.api.util.StatsUtil;
 import com.minecolonies.core.client.gui.huts.WindowHutLiving;
+import com.minecolonies.core.colony.buildings.modules.settings.BoolSetting;
+import com.minecolonies.core.colony.buildings.modules.settings.SettingKey;
 import com.minecolonies.core.colony.buildings.views.LivingBuildingView;
 import com.minecolonies.core.colony.interactionhandling.RecruitmentInteraction;
 import com.minecolonies.core.datalistener.CustomVisitorListener;
@@ -29,6 +32,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,6 +53,9 @@ import static com.minecolonies.api.util.constant.StatisticsConstants.NEW_VISITOR
  */
 public class TavernBuildingModule extends AbstractBuildingModule implements IDefinesCoreBuildingStatsModule, IBuildingEventsModule, IPersistentModule, ITickingModule
 {
+    public static final ISettingKey<BoolSetting>       PLAYMUSIC      =
+      new SettingKey<>(BoolSetting.class, Identifier.fromNamespaceAndPath(com.minecolonies.api.util.constant.Constants.MOD_ID, "playmusic"));
+
     /**
      * Schematic name
      */
@@ -100,33 +108,65 @@ public class TavernBuildingModule extends AbstractBuildingModule implements IDef
     @Override
     public void onPlayerEnterBuilding(final Player player)
     {
-        if (musicCooldown <= 0 && building.getBuildingLevel() > 0 && !building.getColony().isDay())
+        // PORT26 0.5.1: the upstream body, factored into tryPlayTavernTheme so the night
+        // poll in onColonyTick shares the exact same trigger conditions 1:1.
+        tryPlayTavernTheme();
+    }
+
+    /**
+     * PORT26 0.5.1: upstream fires the tavern theme ONLY when a player ENTERS the building,
+     * and that "enter" is a chunk-crossing detection (EventHandler#onEnteringChunk →
+     * AbstractBuilding#onPlayerEnterNearby), so a player who is already inside when night
+     * falls — and a tavern whose surrounding base shares its chunk, which never re-crosses
+     * — never hear the theme at all. This port keeps the upstream entry trigger untouched
+     * and adds a low-frequency night poll (see onColonyTick) that acts as a virtual
+     * re-entry for players already standing inside.
+     *
+     * <p>Upstream conditions shared by both paths: the "play music" setting enabled
+     * (tavern GUI, default on), tavern level &gt; 0, night in the colony, the 20-minute
+     * cooldown elapsed, and at least TWO visitors currently SEATED. The theme plays at the
+     * average seat position in sound category RECORDS (client slider "Jukeboxes/Note
+     * Blocks"), volume 0.7, audible within ~23 blocks of the seats.</p>
+     */
+    private void tryPlayTavernTheme()
+    {
+        final boolean musicToggle = building.getSettingValueOrDefault(PLAYMUSIC, true);
+
+        if (!musicToggle)
         {
-            int count = 0;
-            BlockPos avg = BlockPos.ZERO;
-            for (final Integer id : externalCitizens)
+            return; // turned off in the tavern GUI — intended silence
+        }
+
+        if (musicCooldown > 0 || building.getBuildingLevel() <= 0 || building.getColony().isDay())
+        {
+            return;
+        }
+
+        int count = 0;
+        BlockPos avg = BlockPos.ZERO;
+        for (final Integer id : externalCitizens)
+        {
+            final IVisitorData data = building.getColony().getVisitorManager().getVisitor(id);
+            if (data != null)
             {
-                final IVisitorData data = building.getColony().getVisitorManager().getVisitor(id);
-                if (data != null)
+                if (!data.getSittingPosition().equals(BlockPos.ZERO))
                 {
-                    if (!data.getSittingPosition().equals(BlockPos.ZERO))
-                    {
-                        count++;
-                        avg = avg.offset(data.getSittingPosition());
-                    }
+                    count++;
+                    avg = avg.offset(data.getSittingPosition());
                 }
             }
-
-            if (count < 2)
-            {
-                return;
-            }
-
-            avg = new BlockPos(avg.getX() / count, avg.getY() / count, avg.getZ() / count);
-            final PlayMusicAtPosMessage message = new PlayMusicAtPosMessage(TavernSounds.tavernTheme, avg, building.getColony().getWorld(), 0.7f, 1.0f);
-            message.sendToPlayer(building.getColony().getPackageManager().getCloseSubscribers());
-            musicCooldown = TWENTY_MINUTES;
         }
+
+        if (count < 2)
+        {
+            return;
+        }
+
+        avg = new BlockPos(avg.getX() / count, avg.getY() / count, avg.getZ() / count);
+        final PlayMusicAtPosMessage message =
+          new PlayMusicAtPosMessage(TavernSounds.tavernTheme, avg, building.getColony().getWorld(), 0.7f, 1.0f);
+        message.sendToPlayer(building.getColony().getPackageManager().getCloseSubscribers());
+        musicCooldown = TWENTY_MINUTES;
     }
 
     @Override
@@ -135,6 +175,23 @@ public class TavernBuildingModule extends AbstractBuildingModule implements IDef
         if (musicCooldown > 0)
         {
             musicCooldown -= MAX_TICKRATE;
+        }
+
+        // PORT26 QoL 0.5.1 (tavern music): this module ticks every 500 gt (25 s) — a
+        // cheap night poll that fires the theme for players ALREADY inside the tavern
+        // (see tryPlayTavernTheme). Guards mirror the upstream preconditions so the
+        // poll is a no-op during the day and while the cooldown runs; the seated-visitor
+        // requirement is enforced inside tryPlayTavernTheme exactly like upstream.
+        if (musicCooldown <= 0 && !colony.isDay() && building.getBuildingLevel() > 0 && colony.getWorld() != null)
+        {
+            for (final ServerPlayer subscriber : colony.getPackageManager().getCloseSubscribers())
+            {
+                if (subscriber.level() == colony.getWorld() && building.isInBuilding(subscriber.blockPosition()))
+                {
+                    tryPlayTavernTheme();
+                    break;
+                }
+            }
         }
 
         externalCitizens.removeIf(id -> colony.getVisitorManager().getVisitor(id) == null);

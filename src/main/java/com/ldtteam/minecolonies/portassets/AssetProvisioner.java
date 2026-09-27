@@ -21,6 +21,12 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -90,12 +96,33 @@ public final class AssetProvisioner
      *       global_loot_modifiers.json} deleted (26.1.2's LootModifierManager scans
      *       {@code loot_modifiers/} as a registry folder and chokes on the old
      *       entries/replace registry file — play-test #4's "No key type" error).</li>
+     *   <li>{@code port26-5} — upstream sync to {@code minecolonies-1.1.1399-1.21.1-
+     *       snapshot} (graveyard GUI layout + tavern-music/manual lang from the ARR pack,
+     *       rebalanced mount research effects data).</li>
      * </ul>
      */
-    private static final String MARKER_FORMAT = "port26-4";
+    private static final String MARKER_FORMAT = "port26-5";
 
     /** Progress report interval for streamed downloads (250 ms). */
     private static final long PROGRESS_REPORT_INTERVAL_NANOS = 250_000_000L;
+
+    /**
+     * PORT26 (0.4.6, "protection when the player has network problems"): a stalled body
+     * read can block indefinitely (Wi-Fi drop without TCP RST) and the 15-minute request
+     * timeout alone would leave the player staring at a frozen progress bar. The watchdog
+     * aborts the transfer when no bytes arrive for this long.
+     */
+    private static final long STALL_TIMEOUT_NANOS = TimeUnit.SECONDS.toNanos(30L);
+
+    /** Watchdog poll period (checks the last-byte timestamp above). */
+    private static final long STALL_CHECK_SECONDS = 2L;
+
+    /** Daemon watchdog executor (one sequential poller — downloads never overlap). */
+    private static final ScheduledExecutorService STALL_WATCHDOG = Executors.newSingleThreadScheduledExecutor(r -> {
+        final Thread thread = new Thread(r, "minecolonies-port-assets-watchdog");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     /** Shared HTTP client (follows CDN redirects, sane timeouts). */
     private static volatile HttpClient httpClient;
@@ -325,15 +352,66 @@ public final class AssetProvisioner
         catch (final Throwable t)
         {
             MineColonies.LOGGER.warn("port-assets: provisioning '{}' failed", namespace.modId(), t);
-            return namespace.displayName() + ": " + t.getClass().getSimpleName()
-                     + (t.getMessage() != null ? " — " + t.getMessage() : "");
+            return namespace.displayName() + ": " + friendlyError(t);
+        }
+    }
+
+    /**
+     * PORT26 (0.4.6): maps a provisioning failure onto a short, actionable, TRANSLATED
+     * message for the notice screen — the full stack stays in the log. Network failures
+     * are by far the most common (player offline, captive portal, flaky Wi-Fi, upstream
+     * CDN hiccup) and a raw {@code "IOException: unexpected 0x00 while reading"} helps
+     * nobody.
+     *
+     * @param t the failure (message and its whole cause chain are inspected).
+     * @return the user-facing error line.
+     */
+    private static String friendlyError(final Throwable t)
+    {
+        for (Throwable c = t; c != null; c = c.getCause() == c ? null : c.getCause())
+        {
+            if (c instanceof StalledDownloadException)
+            {
+                return PortAssetText.format("portassets.error.stall");
+            }
+            if (c instanceof InterruptedException)
+            {
+                return PortAssetText.format("portassets.error.interrupted");
+            }
+            if (c instanceof java.net.http.HttpTimeoutException
+                  || c instanceof java.net.ConnectException
+                  || c instanceof java.net.UnknownHostException
+                  || c instanceof java.net.NoRouteToHostException
+                  || c instanceof java.net.SocketTimeoutException)
+            {
+                return PortAssetText.format("portassets.error.offline");
+            }
+            final String message = c.getMessage();
+            if (message != null && message.startsWith("HTTP ") && message.contains(" from http"))
+            {
+                return PortAssetText.format("portassets.error.http", message);
+            }
+        }
+        return t.getClass().getSimpleName() + (t.getMessage() != null ? " — " + t.getMessage() : "");
+    }
+
+    /**
+     * Marker for the watchdog abort path — recognized by {@link #friendlyError(Throwable)}
+     * so the notice screen can show the dedicated "stalled" wording instead of the raw
+     * shutdown-io noise the HttpClient produces.
+     */
+    private static final class StalledDownloadException extends IOException
+    {
+        private StalledDownloadException()
+        {
+            super("download stalled — no data for " + TimeUnit.NANOSECONDS.toSeconds(STALL_TIMEOUT_NANOS) + "s");
         }
     }
 
     /**
      * Looks for a user-provided official archive in {@code port-assets/source-jars/}. Matching
      * is filename-based: the file name must start with the owner mod id (with {@code -} or
-     * {@code _} separators), e.g. {@code minecolonies-1.1.1387-1.21.1-snapshot.jar} or
+     * {@code _} separators), e.g. {@code minecolonies-1.1.1399-1.21.1-snapshot.jar} or
      * {@code blockui-release-main.tar.gz}.
      *
      * @param owner the owning download mod id.
@@ -502,26 +580,71 @@ public final class AssetProvisioner
             final long totalBytes = response.headers().firstValueAsLong("Content-Length").orElse(-1);
             final long started = System.nanoTime();
             long lastReport = 0;
+
+            // PORT26 (0.4.6): stall watchdog — a body read can block forever on a silently
+            // dropped connection. The poller watches the last-byte timestamp; on timeout it
+            // shuts the client down (the only reliable way to unblock an in-flight body
+            // read), and the copy loop below converts that into a StalledDownloadException.
+            final AtomicLong lastByteNanos = new AtomicLong(System.nanoTime());
+            final AtomicBoolean stalled = new AtomicBoolean(false);
+            final ScheduledFuture<?> watchdog = STALL_WATCHDOG.scheduleWithFixedDelay(() -> {
+                if (!stalled.get() && System.nanoTime() - lastByteNanos.get() > STALL_TIMEOUT_NANOS)
+                {
+                    stalled.set(true);
+                    MineColonies.LOGGER.warn("port-assets: download of {} stalled — no data for {}s, aborting",
+                        namespace.displayName(), TimeUnit.NANOSECONDS.toSeconds(STALL_TIMEOUT_NANOS));
+                    final HttpClient dead = httpClient;
+                    httpClient = null; // the next attempt builds a fresh client
+                    if (dead != null)
+                    {
+                        try
+                        {
+                            dead.shutdownNow();
+                        }
+                        catch (final Throwable ignored)
+                        {
+                            // already shutting down — the read unblocks either way
+                        }
+                    }
+                }
+            }, STALL_CHECK_SECONDS, STALL_CHECK_SECONDS, TimeUnit.SECONDS);
+
             try (final InputStream body = response.body(); final OutputStream out = Files.newOutputStream(tmp))
             {
                 final byte[] buffer = new byte[64 * 1024];
                 long downloaded = 0;
                 int read;
-                while ((read = body.read(buffer)) >= 0)
+                try
                 {
-                    out.write(buffer, 0, read);
-                    downloaded += read;
-                    final long now = System.nanoTime();
-                    if (listener != null && now - lastReport >= PROGRESS_REPORT_INTERVAL_NANOS)
+                    while ((read = body.read(buffer)) >= 0)
                     {
-                        lastReport = now;
-                        listener.accept(progressLine(downloaded, totalBytes, started, now));
+                        out.write(buffer, 0, read);
+                        downloaded += read;
+                        lastByteNanos.set(System.nanoTime());
+                        final long now = lastByteNanos.get();
+                        if (listener != null && now - lastReport >= PROGRESS_REPORT_INTERVAL_NANOS)
+                        {
+                            lastReport = now;
+                            listener.accept(progressLine(downloaded, totalBytes, started, now));
+                        }
                     }
+                }
+                catch (final IOException e)
+                {
+                    if (stalled.get())
+                    {
+                        throw new StalledDownloadException();
+                    }
+                    throw e;
                 }
                 if (listener != null)
                 {
                     listener.accept(progressLine(downloaded, totalBytes, started, System.nanoTime()));
                 }
+            }
+            finally
+            {
+                watchdog.cancel(false);
             }
             try
             {
