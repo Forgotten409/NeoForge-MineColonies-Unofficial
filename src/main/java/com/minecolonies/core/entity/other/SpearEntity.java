@@ -1,5 +1,6 @@
 package com.minecolonies.core.entity.other;
 
+import com.minecolonies.api.util.PortDamageSources;
 import com.minecolonies.api.entity.ModEntities;
 import com.minecolonies.api.entity.mobs.ICustomAttackSound;
 import com.minecolonies.api.items.ModItems;
@@ -97,7 +98,7 @@ public class SpearEntity extends ThrownTrident implements ICustomAttackSound
         Entity ownerEntity = this.getOwner();
 
         float damageAmount = BASE_DAMAGE;
-        DamageSource damageSource = this.level().damageSources().source(SPEAR, this, ownerEntity == null ? this : ownerEntity);
+        DamageSource damageSource = PortDamageSources.source(this.level(), SPEAR, this, ownerEntity == null ? this : ownerEntity);
         if (targetEntity instanceof LivingEntity)
         {
             if (this.level() instanceof ServerLevel serverlevel)

@@ -1,5 +1,6 @@
 package com.minecolonies.core.entity.ai.workers.guard;
 
+import com.minecolonies.api.util.PortDamageSources;
 import com.minecolonies.api.colony.jobs.ModJobs;
 import com.minecolonies.api.entity.ai.combat.CombatAIStates;
 import com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.ITickRateStateMachine;
@@ -294,7 +295,7 @@ public class RangeCombatAI extends AttackMoveAI<EntityCitizen>
                             if (isMarksman())
                             {
                                 // Calculate true damage from reduced arrow damage.
-                                entityRayTraceResult.getEntity().hurt(user.level().damageSources().source(DamageSourceKeys.PIERCE, user), (float) customArrowEntity.getTrackedBaseDamage() * (float) marksManTrueDamageShare() * 10); // PORT26: getBaseDamage() removed — tracked damage
+                                entityRayTraceResult.getEntity().hurt(PortDamageSources.source(user.level(), DamageSourceKeys.PIERCE, user), (float) customArrowEntity.getTrackedBaseDamage() * (float) marksManTrueDamageShare() * 10); // PORT26: getBaseDamage() removed — tracked damage
                             }
 
                             return true;

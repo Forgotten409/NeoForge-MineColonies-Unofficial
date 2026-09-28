@@ -12,6 +12,7 @@ import com.minecolonies.api.entity.citizen.VisibleCitizenStatus;
 import com.minecolonies.api.equipment.ModEquipmentTypes;
 import com.minecolonies.api.equipment.registry.EquipmentTypeEntry;
 import com.minecolonies.api.util.DamageSourceKeys;
+import com.minecolonies.api.util.PortDamageSources;
 import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.SoundUtils;
@@ -200,10 +201,10 @@ public class MeleeCombatAI extends AttackMoveAI<EntityCitizen>
         user.playSound(SoundEvents.PLAYER_ATTACK_SWEEP, (float) BASIC_VOLUME, (float) SoundUtils.getRandomPitch(user.getRandom()));
 
         final double damageToBeDealt = getAttackDamage();
-        DamageSource source = target.level().damageSources().source(DamageSourceKeys.GUARD, user);
+        DamageSource source = PortDamageSources.source(target.level(), DamageSourceKeys.GUARD, user);
         if (MineColonies.getConfig().getServer().pvp_mode.get() && target instanceof Player)
         {
-            source = target.level().damageSources().source(DamageSourceKeys.GUARD_PVP, user);
+            source = PortDamageSources.source(target.level(), DamageSourceKeys.GUARD_PVP, user);
         }
 
         final int fireLevel = user.getItemInHand(InteractionHand.MAIN_HAND).getEnchantmentLevel(Utils.getRegistryValue(Enchantments.FIRE_ASPECT, user.level()));
@@ -220,7 +221,7 @@ public class MeleeCombatAI extends AttackMoveAI<EntityCitizen>
         if (isHuscarl())
         {
             double share = (50 + user.getCitizenData().getCitizenSkillHandler().getLevel(Skill.Adaptability) / 2.0) / 100.0;
-            target.hurt(target.level().damageSources().source(DamageSourceKeys.PIERCE, user), (float) damageToBeDealt * (float) share);
+            target.hurt(PortDamageSources.source(target.level(), DamageSourceKeys.PIERCE, user), (float) damageToBeDealt * (float) share);
             target.hurt(source, (float) damageToBeDealt * (float) (1.0 - share));
         }
         else

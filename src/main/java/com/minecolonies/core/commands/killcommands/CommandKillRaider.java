@@ -4,6 +4,7 @@ import com.minecolonies.api.colony.colonyEvents.EventStatus;
 import com.minecolonies.api.colony.colonyEvents.IColonyEvent;
 import com.minecolonies.api.entity.mobs.AbstractEntityMinecoloniesRaider;
 import com.minecolonies.api.util.DamageSourceKeys;
+import com.minecolonies.api.util.PortDamageSources;
 import com.minecolonies.core.commands.commandTypes.IMCOPCommand;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -30,7 +31,7 @@ public class CommandKillRaider implements IMCOPCommand
             if (entity != null)
             {
                 final AbstractEntityMinecoloniesRaider mob = (AbstractEntityMinecoloniesRaider) entity;
-                mob.die(context.getSource().getLevel().damageSources().source(DamageSourceKeys.CONSOLE));
+                mob.die(PortDamageSources.source(context.getSource().getLevel(), DamageSourceKeys.CONSOLE));
                 mob.remove(Entity.RemovalReason.DISCARDED);
 
                 final IColonyEvent event = mob.getColony().getEventManager().getEventByID(mob.getEventID());

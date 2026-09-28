@@ -7,6 +7,7 @@ import com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.ITickRat
 import com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.TickingTransition;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.util.DamageSourceKeys;
+import com.minecolonies.api.util.PortDamageSources;
 import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.core.colony.VisitorData;
 import com.minecolonies.core.colony.buildings.DefaultBuildingInstance;
@@ -124,7 +125,7 @@ public class EntityAIVisitor implements IState
         if (EntityNavigationUtils.walkToPos(citizen, target.blockPosition(), 2, false) && citizen.hasLineOfSight(target))
         {
             citizen.swing(InteractionHand.MAIN_HAND);
-            target.hurt(target.level().damageSources().source(DamageSourceKeys.VISITOR), 10.0f);
+            target.hurt(PortDamageSources.source(target.level(), DamageSourceKeys.VISITOR), 10.0f);
         }
 
         return false;

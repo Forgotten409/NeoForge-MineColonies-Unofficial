@@ -110,7 +110,21 @@ const GPL_ASSET_DIRS = [
   "src/main/resources/assets/multipiston",
   "src/main/resources/assets/structurize",
   "src/main/resources/assets/minecraft/atlases",
-  "src/main/resources-publish/assets/minecolonies", // port-authored eggs/equipment (28 png, verified)
+  "src/main/resources-publish/assets/minecolonies", // port-authored eggs + leather (20 png, verified)
+];
+
+/**
+ * resources-publish sub-trees that are STORE-PROVIDED since the 0.6.0 ARR externalization:
+ * any tracked file here is a regression (ARR-derived content re-bundled into the publish
+ * jar). The port ships only port-authored content in resources-publish — items/, equipment
+ * JSONs, novel lang keys, egg/leather pngs, the cavalry_horse loot table and the
+ * portassets/overrides/ conversion rules.
+ */
+const STORE_PROVIDED_DIRS = [
+  "src/main/resources-publish/assets/minecolonies/textures/entity", // equipment armor-layer pngs — renamed from the store by the converter
+  "src/main/resources-publish/data/minecolonies/damage_type", // 47 ARR records — store provides
+  "src/main/resources-publish/data/minecolonies/researches", // upstream research JSONs — store provides
+  "src/main/resources-publish/data/minecolonies/recipe", // blockhutstable etc. — store + converter provide
 ];
 
 function norm(p) {
@@ -171,6 +185,12 @@ const warnings = [];
 
 for (const f of files) {
   const p = norm(f);
+
+  // 0. resources-publish: store-provided ARR-derived sub-trees (0.6.0 externalization)
+  if (STORE_PROVIDED_DIRS.some((d) => p === d || p.startsWith(d + "/"))) {
+    violations.push(`store-provided: ${p} (ARR-derived content must come from the external store + converter, not the publish jar)`);
+    continue;
+  }
 
   // 1. ARR paths
   if (ARR_DIRS.some((d) => p === d || p.startsWith(d + "/"))) {

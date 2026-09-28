@@ -1,5 +1,6 @@
 package com.minecolonies.core.entity.ai.workers.production;
 
+import com.minecolonies.api.util.PortDamageSources;
 import com.google.common.collect.ImmutableList;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.IColonyManager;
@@ -397,7 +398,7 @@ public class EntityAIWorkNether extends AbstractEntityAICrafting<JobNetherWorker
                             equipArmor(true);
                             worker.setItemSlot(EquipmentSlot.MAINHAND, findTool(ModEquipmentTypes.sword.get()));
 
-                            DamageSource source = world.damageSources().source(DamageSourceKeys.NETHER);
+                            DamageSource source = PortDamageSources.source(world, DamageSourceKeys.NETHER);
 
                             //Set up the mob to do battle with
                             EntityType<?> mobType = component.entityType();
@@ -429,7 +430,7 @@ public class EntityAIWorkNether extends AbstractEntityAICrafting<JobNetherWorker
                                     // via Compatibility.tinkersCompat), since both expose ATTACK_DAMAGE modifiers.
                                     damageToDo += getAttackDamageModifier(sword);
 
-                                    damageToDo += EnchantmentHelper.modifyDamage((ServerLevel) worker.level(), sword, mob, worker.level().damageSources().source(DamageSourceKeys.DEFAULT, worker), 1f) / 2.5f;
+                                    damageToDo += EnchantmentHelper.modifyDamage((ServerLevel) worker.level(), sword, mob, PortDamageSources.source(worker.level(), DamageSourceKeys.DEFAULT, worker), 1f) / 2.5f;
                                     if (doDamage)
                                     {
                                         sword.hurtAndBreak(1, (ServerLevel) worker.level(), worker, item -> {

@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -135,6 +136,34 @@ final class PortAssetConverter
         "models/armor/leather_layer_2", "minecolonies:block/leather");
 
     /**
+     * Equipment (armor-layer) textures 1.21.1 → 26.1.2 path renames, applied to the FILES
+     * themselves (not model references): the 1.21.1 layout keeps every wearable layer as
+     * {@code textures/models/armor/<name>_layer_1/_2.png} (rendered by the old humanoid
+     * armor model system), while 26.1.2 resolves equipment assets
+     * ({@code assets/minecolonies/equipment/<name>.json}, port-authored and shipped in the
+     * publish jar) against {@code textures/entity/equipment/humanoid/<name>.png} and
+     * {@code …/humanoid_leggings/<name>.png}. The bytes are identical — only the path
+     * changes — and the SOURCE is the user's own downloaded official jar, so the publish
+     * jar no longer needs to bundle these ARR textures at all (port26-6: the eight PNGs
+     * previously shipped in {@code resources-publish} were byte-identical ARR copies and
+     * got the 0.5.2 CurseForge submission rejected as "derivative work").
+     *
+     * <p>Key = old store path (relative to {@code assets/minecolonies/}), value = new store
+     * path. Copy is idempotent ({@code REPLACE_EXISTING}, same bytes on re-run) and the old
+     * file is left in place — nothing references it after conversion, and textures never
+     * parse, so it cannot produce load errors.</p>
+     */
+    private static final Map<String, String> EQUIPMENT_TEXTURES = Map.of(
+        "textures/models/armor/pirate_layer_1.png", "textures/entity/equipment/humanoid/pirate.png",
+        "textures/models/armor/pirate_layer_2.png", "textures/entity/equipment/humanoid_leggings/pirate.png",
+        "textures/models/armor/pirate2_layer_1.png", "textures/entity/equipment/humanoid/pirate2.png",
+        "textures/models/armor/pirate2_layer_2.png", "textures/entity/equipment/humanoid_leggings/pirate2.png",
+        "textures/models/armor/plate_armor_layer_1.png", "textures/entity/equipment/humanoid/plate_armor.png",
+        "textures/models/armor/plate_armor_layer_2.png", "textures/entity/equipment/humanoid_leggings/plate_armor.png",
+        "textures/models/armor/build_goggles_layer_1.png", "textures/entity/equipment/humanoid/build_goggles.png",
+        "textures/models/armor/santa_hat_layer_1.png", "textures/entity/equipment/humanoid/santa_hat.png");
+
+    /**
      * Old spawn-egg model parent (removed in the 1.21.2+ line) — replaced by the
      * generated parent + the port-authored egg texture (shipped in the publish jar).
      */
@@ -258,6 +287,31 @@ final class PortAssetConverter
             }
         }
 
+        // equipment (armor-layer) textures: 1.21.1 file layout → 26.1.2 equipment asset
+        // layout (byte-identical copy from the user's own jar — port26-6 ARR externalization;
+        // the publish jar's equipment/*.json reference the NEW paths)
+        int equipmentTextures = 0;
+        for (final var entry : EQUIPMENT_TEXTURES.entrySet())
+        {
+            final Path old = assetsDir.resolve(entry.getKey().replace('/', storeDir.getFileSystem().getSeparator().charAt(0)));
+            final Path target = assetsDir.resolve(entry.getValue().replace('/', storeDir.getFileSystem().getSeparator().charAt(0)));
+            if (!Files.isRegularFile(old))
+            {
+                MineColonies.LOGGER.warn("port-assets: equipment texture {} missing from the store — equipment asset renders without it", entry.getKey());
+                continue;
+            }
+            try
+            {
+                Files.createDirectories(target.getParent());
+                Files.copy(old, target, StandardCopyOption.REPLACE_EXISTING);
+                equipmentTextures++;
+            }
+            catch (final IOException e)
+            {
+                MineColonies.LOGGER.warn("port-assets: could not copy equipment texture {}: {}", entry.getKey(), e.toString());
+            }
+        }
+
         // obsolete global loot-modifier REGISTRY file: 26.1.2's LootModifierManager scans
         // data/<ns>/loot_modifiers/ as a registry folder (every file = one modifier
         // instance, parsed by the DIRECT_CODEC with its "type" dispatch key) — the 1.21.1
@@ -322,11 +376,11 @@ final class PortAssetConverter
         if (convertedFiles.length > 0)
         {
             convertedFiles[0] += modelFiles + dataFiles + deletedWrappers + deletedObsoleteData + overrides
-                + (soundEntries > 0 ? 1 : 0);
+                + equipmentTextures + (soundEntries > 0 ? 1 : 0);
         }
         MineColonies.LOGGER.info("port-assets: conversion applied — {} model file(s), {} data file(s), {} rack wrapper(s) deleted, "
-            + "{} obsolete data file(s) deleted, {} override file(s), {} sounds.json entr(y|ies) merged",
-            modelFiles, dataFiles, deletedWrappers, deletedObsoleteData, overrides, soundEntries);
+            + "{} obsolete data file(s) deleted, {} override file(s), {} equipment texture(s) renamed, {} sounds.json entr(y|ies) merged",
+            modelFiles, dataFiles, deletedWrappers, deletedObsoleteData, overrides, equipmentTextures, soundEntries);
     }
 
     /**

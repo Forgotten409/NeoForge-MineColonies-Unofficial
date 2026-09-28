@@ -5,7 +5,7 @@
  *
  * The rule tables and transform functions below are copied EXACTLY from the Java
  * converter (src/main/java/com/ldtteam/minecolonies/portassets/PortAssetConverter.java,
- * rule set "port26-4") — any change here must be mirrored there and vice versa,
+ * rule set "port26-6") — any change here must be mirrored there and vice versa,
  * and both directions bump AssetProvisioner.MARKER_FORMAT.
  *
  * All transforms are IDEMPOTENT: running them over already-converted content is a
@@ -23,6 +23,24 @@ export const TEXTURE_RENAMES = {
   'map/map_icons': 'block/oak_planks',
   'models/armor/leather_layer_1': 'minecolonies:block/leather',
   'models/armor/leather_layer_2': 'minecolonies:block/leather',
+};
+
+/**
+ * Equipment (armor-layer) texture FILE renames 1.21.1 → 26.1.2 (1:1 with Java
+ * PortAssetConverter.EQUIPMENT_TEXTURES, rule set port26-6): the old layout ships
+ * textures/models/armor/<name>_layer_1/_2.png, the 26.1.2 equipment assets resolve
+ * textures/entity/equipment/humanoid[-leggings]/<name>.png. Byte-identical copy from
+ * the user's own downloaded jar — the publish jar no longer bundles these ARR PNGs.
+ */
+export const EQUIPMENT_TEXTURES = {
+  'textures/models/armor/pirate_layer_1.png': 'textures/entity/equipment/humanoid/pirate.png',
+  'textures/models/armor/pirate_layer_2.png': 'textures/entity/equipment/humanoid_leggings/pirate.png',
+  'textures/models/armor/pirate2_layer_1.png': 'textures/entity/equipment/humanoid/pirate2.png',
+  'textures/models/armor/pirate2_layer_2.png': 'textures/entity/equipment/humanoid_leggings/pirate2.png',
+  'textures/models/armor/plate_armor_layer_1.png': 'textures/entity/equipment/humanoid/plate_armor.png',
+  'textures/models/armor/plate_armor_layer_2.png': 'textures/entity/equipment/humanoid_leggings/plate_armor.png',
+  'textures/models/armor/build_goggles_layer_1.png': 'textures/entity/equipment/humanoid/build_goggles.png',
+  'textures/models/armor/santa_hat_layer_1.png': 'textures/entity/equipment/humanoid/santa_hat.png',
 };
 export const OLD_SPAWN_EGG_PARENT = 'item/template_spawn_egg';
 export const RACK_WRAPPER_MODELS = [
@@ -324,13 +342,13 @@ const walk = (dir) => {
  * @param {(line: string) => void} [log] progress sink
  * @returns {{modelFiles:number, dataFiles:number, deletedWrappers:number,
  *            deletedObsolete:number, overrides:number, soundEntries:number,
- *            written:number}} conversion counters
+ *            written:number, equipmentTextures:number}} conversion counters
  */
 export function convertStoreDir(storeDir, overridesDir, log = () => {}) {
   const assetsDir = path.join(storeDir, 'assets', 'minecolonies');
   const dataDir = path.join(storeDir, 'data', 'minecolonies');
   let modelFiles = 0, dataFiles = 0, deletedWrappers = 0, deletedObsolete = 0;
-  let overrides = 0, soundEntries = 0, written = 0;
+  let overrides = 0, soundEntries = 0, written = 0, equipmentTextures = 0;
 
   const writeBack = (file, root) => {
     const json = JSON.stringify(root, null, 2) + '\n';
@@ -373,6 +391,22 @@ export function convertStoreDir(storeDir, overridesDir, log = () => {}) {
     log('note: global_loot_modifiers.json already absent (re-run over converted store)');
   }
 
+  // equipment (armor-layer) texture file renames (port26-6 ARR externalization) —
+  // byte-identical copy inside the user's own store, idempotent (REPLACE_EXISTING)
+  if (fs.existsSync(assetsDir)) {
+    for (const [oldRel, newRel] of Object.entries(EQUIPMENT_TEXTURES)) {
+      const src = path.join(assetsDir, oldRel);
+      if (!fs.existsSync(src)) {
+        log(`note: equipment texture ${oldRel} absent from the store (older jar?) — skipped`);
+        continue;
+      }
+      const dst = path.join(assetsDir, newRel);
+      fs.mkdirSync(path.dirname(dst), { recursive: true });
+      fs.copyFileSync(src, dst);
+      equipmentTextures++;
+    }
+  }
+
   // sounds.json merge (mirror of the Java mergeSoundsExtra)
   const soundsPath = path.join(assetsDir, 'sounds.json');
   const soundsExtraPath = overridesDir ? path.join(overridesDir, 'sounds-extra.json') : null;
@@ -401,7 +435,8 @@ export function convertStoreDir(storeDir, overridesDir, log = () => {}) {
 
   log(`converted: ${modelFiles} model file(s), ${dataFiles} data file(s), `
       + `${deletedWrappers} wrapper(s) deleted, ${deletedObsolete} obsolete data file(s) `
-      + `deleted, ${overrides} override(s), ${soundEntries} sound entrie(s)`);
+      + `deleted, ${equipmentTextures} equipment texture(s) renamed, ${overrides} override(s), `
+      + `${soundEntries} sound entrie(s)`);
 
-  return { modelFiles, dataFiles, deletedWrappers, deletedObsolete, overrides, soundEntries, written };
+  return { modelFiles, dataFiles, deletedWrappers, deletedObsolete, overrides, soundEntries, written, equipmentTextures };
 }

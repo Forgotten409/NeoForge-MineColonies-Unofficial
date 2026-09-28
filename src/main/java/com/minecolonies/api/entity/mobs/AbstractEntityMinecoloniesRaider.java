@@ -11,6 +11,7 @@ import com.minecolonies.api.entity.pathfinding.registry.IPathNavigateRegistry;
 import com.minecolonies.api.items.IChiefSwordItem;
 import com.minecolonies.api.util.ColonyUtils;
 import com.minecolonies.api.util.DamageSourceKeys;
+import com.minecolonies.api.util.PortDamageSources;
 import com.minecolonies.core.entity.pathfinding.navigation.AbstractAdvancedPathNavigate;
 import com.minecolonies.core.entity.pathfinding.navigation.PathingStuckHandler;
 import net.minecraft.core.registries.Registries;
@@ -301,7 +302,7 @@ public abstract class AbstractEntityMinecoloniesRaider extends AbstractEntityMin
 
             if (shouldDespawn())
             {
-                this.die(level().damageSources().source(DamageSourceKeys.DESPAWN));
+                this.die(PortDamageSources.source(level(), DamageSourceKeys.DESPAWN));
                 this.remove(RemovalReason.DISCARDED);
                 return;
             }

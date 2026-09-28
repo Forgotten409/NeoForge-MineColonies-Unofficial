@@ -99,9 +99,16 @@ public final class AssetProvisioner
      *   <li>{@code port26-5} — upstream sync to {@code minecolonies-1.1.1399-1.21.1-
      *       snapshot} (graveyard GUI layout + tavern-music/manual lang from the ARR pack,
      *       rebalanced mount research effects data).</li>
+     *   <li>{@code port26-6} — full ARR externalization of the publish jar (CurseForge
+     *       0.5.2 rejection): equipment armor-layer textures are now RENAMED from the
+     *       store's 1.21.1 {@code textures/models/armor/*_layer_*.png} to the 26.1.2
+     *       equipment-asset paths during conversion, and the ARR-derived resources-publish
+     *       content (equipment PNGs, {@code damage_type}, researches,
+     *       {@code recipe/blockhutstable}, upstream-identical lang keys) is no longer
+     *       bundled — the store + converter now provide all of it.</li>
      * </ul>
      */
-    private static final String MARKER_FORMAT = "port26-5";
+    private static final String MARKER_FORMAT = "port26-6";
 
     /** Progress report interval for streamed downloads (250 ms). */
     private static final long PROGRESS_REPORT_INTERVAL_NANOS = 250_000_000L;

@@ -713,6 +713,35 @@ Reference sources cloned at: `/home/z/my-project/portsrc/` (283 MB total, 2604 j
       comment hits only); every replacement member exists non-deprecated in the
       user's artifact (dump_depr.py + api_dump.txt).
 
+  Fifteenth batch (0.6.0 — full ARR externalization of the publish jar; CurseForge
+  rejected 0.5.2 as "derivative work of ARR project"):
+  * The publish tree still carried ARR-derived content: 8 equipment PNGs (byte-identical
+    copies of `textures/models/armor/*_layer_*.png`, renamed to the 26.1.2 equipment
+    paths), 47 `data/minecolonies/damage_type/*.json` (byte-identical), 12 mount-research
+    JSONs (content-identical), `recipe/blockhutstable.json` (identical to the generic
+    converter rule's output) and 21 `en_us` lang keys 1:1 with upstream. ALL of it now
+    arrives from the runtime store instead — the audit trail is in worklog task
+    mc-arr-audit; `tools/check-arr-clean.mjs` guards the four store-provided
+    resources-publish sub-trees so it can never regress.
+  * New converter rule `EQUIPMENT_TEXTURES` (Java + JS mirror, rule set port26-6, marker
+    bumped → existing stores re-provision): copies the armor-layer PNGs from the user's
+    own downloaded jar to `textures/entity/equipment/humanoid[-leggings]/` — same bytes,
+    same rendering, only the source changed. Verified against the official
+    minecolonies-1.1.1399 jar: 8/8 byte-identical at the new paths, idempotent re-run.
+  * The 47 damage_type JSONs were originally bundled as a crash safety net (vanilla
+    resolves damage-type keys with getOrThrow — the 0.4.x play-test crash). Removing them
+    from the jar required a code-side fallback: every
+    `level.damageSources().source(DamageSourceKeys.X, …)` call site (20 across 16 files)
+    now goes through `com.minecolonies.api.util.PortDamageSources`, which resolves the
+    real key when the store is provisioned (byte-identical behaviour) and falls back to
+    `mobAttack(causing)` / `generic_kill` + one WARN per key when it is not — a missing
+    store can never hard-crash the game again.
+  * Verified: full converter simulation over the extracted official jar — 71/71 checks
+    (8 PNG byte-equal, 12 researches deep-equal, blockhutstable rule-output deep-equal,
+    47 damage_types deep-equal, lang merge unchanged: novel 91 + official ≡ old 112 +
+    official); MD5 scan of all resources-publish files vs the pristine official jar: 0
+    collisions; `check-arr-clean.mjs`: OK.
+
   Each phase must COMPILE + LOAD in the dev client before the next starts.
 
 ## Merge Rules (single mod)

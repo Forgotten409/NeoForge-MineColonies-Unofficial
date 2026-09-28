@@ -4,6 +4,7 @@ import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.util.DamageSourceKeys;
+import com.minecolonies.api.util.PortDamageSources;
 import com.minecolonies.api.util.constant.translation.CommandTranslationConstants;
 import com.minecolonies.core.MineColonies;
 import com.minecolonies.core.commands.arguments.ColonyIdArgument;
@@ -64,7 +65,7 @@ public class CommandCitizenKill implements IMCColonyOfficerCommand
         context.getSource()
           .sendSuccess(() -> Component.translatableEscape(CommandTranslationConstants.COMMAND_CITIZEN_KILL_SUCCESS, position.getX(), position.getY(), position.getZ()), true);
 
-        optionalEntityCitizen.get().die(context.getSource().getLevel().damageSources().source(DamageSourceKeys.CONSOLE));
+        optionalEntityCitizen.get().die(PortDamageSources.source(context.getSource().getLevel(), DamageSourceKeys.CONSOLE));
 
         return 1;
     }

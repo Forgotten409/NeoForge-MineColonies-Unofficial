@@ -19,8 +19,9 @@
  *      rule set the game's runtime converter uses (tools/converter-rules.mjs — the 1:1
  *      JS mirror of PortAssetConverter; tools/simulate-converter.mjs verifies the
  *      output against the maintainer's dev tree). Models, recipes, loot tables, tags,
- *      spawn-egg models, racks, spears, sounds.json — all arrive dev-ready, so the
- *      old "raw 1.21.1 formats break the dev run" trap is gone.
+ *      spawn-egg models, racks, spears, sounds.json and the equipment armor-layer
+ *      texture renames (port26-6) — all arrive dev-ready, so the old "raw 1.21.1
+ *      formats break the dev run" trap is gone.
  *   3. Moves the CONVERTED trees into the destination (src/main/resources by default):
  *        assets/minecolonies/**, assets/minecraft/textures/** (if present),
  *        blueprints/**, data/minecolonies/**, data/c/**,
@@ -58,9 +59,10 @@ const RES = join(ROOT, "src/main/resources");
 const RES_PUB = join(ROOT, "src/main/resources-publish");
 const OVERRIDES = join(RES_PUB, "portassets", "overrides");
 
-// mirrors docs/PUBLISHING.md §3 (stable forgecdn direct links, no auth)
-const CDN_URL = "https://mediafilez.forgecdn.net/files/8872/247/minecolonies-1.1.1387-1.21.1-snapshot.jar";
-const JAR_NAME = "minecolonies-1.1.1387-1.21.1-snapshot.jar";
+// mirrors docs/PUBLISHING.md §3 (stable forgecdn direct links, no auth) — same URL the
+// runtime provisioner (PortAssets.NAMESPACES) downloads for the minecolonies namespace
+const CDN_URL = "https://mediafilez.forgecdn.net/files/8986/260/minecolonies-1.1.1399-1.21.1-snapshot.jar";
+const JAR_NAME = "minecolonies-1.1.1399-1.21.1-snapshot.jar";
 
 const argv = process.argv.slice(2);
 const flag = (name) => argv.includes(name);
@@ -169,7 +171,7 @@ async function main() {
 
     // convert the 1.21.1 formats to the 26.1 formats BEFORE anything lands in the
     // dev tree — same rule set the game's runtime converter applies to the external
-    // store (tools/converter-rules.mjs ⇔ PortAssetConverter, rule set port26-4)
+    // store (tools/converter-rules.mjs ⇔ PortAssetConverter, rule set port26-6)
     console.log(`restore-dev-assets: converting 1.21.1 → 26.1 formats …`);
     const counts = convertStoreDir(tmp, existsSync(OVERRIDES) ? OVERRIDES : null,
       (line) => console.log("  " + line));
@@ -227,6 +229,7 @@ async function main() {
     console.log("");
     console.log(`(${counts.modelFiles} model file(s) and ${counts.dataFiles} data file(s) converted; `
       + `${counts.deletedWrappers + counts.deletedObsolete} obsolete file(s) removed, `
+      + `${counts.equipmentTextures} equipment texture(s) renamed, `
       + `${counts.overrides} port override(s) applied)`);
   } finally {
     rmSync(tmp, { recursive: true, force: true });

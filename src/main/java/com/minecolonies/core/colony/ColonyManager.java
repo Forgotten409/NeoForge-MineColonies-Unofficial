@@ -24,6 +24,7 @@ import com.minecolonies.api.sounds.SoundManager;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.ColonyUtils;
 import com.minecolonies.api.util.DamageSourceKeys;
+import com.minecolonies.api.util.PortDamageSources;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.core.MineColonies;
 import com.minecolonies.core.client.gui.WindowReactivateBuilding;
@@ -181,7 +182,7 @@ public final class ColonyManager implements IColonyManager
             for (final ICitizenData citizenData : new ArrayList<>(colony.getCitizenManager().getCitizens()))
             {
                 Log.getLogger().info("Kill Citizen " + citizenData.getName());
-                citizenData.getEntity().ifPresent(entityCitizen -> entityCitizen.die(world.damageSources().source(DamageSourceKeys.CONSOLE)));
+                citizenData.getEntity().ifPresent(entityCitizen -> entityCitizen.die(PortDamageSources.source(world, DamageSourceKeys.CONSOLE)));
             }
 
             Log.getLogger().info("Removing buildings for " + id);

@@ -8,6 +8,7 @@ import com.minecolonies.api.entity.pathfinding.IStuckHandlerEntity;
 import com.minecolonies.api.items.ModTags;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.DamageSourceKeys;
+import com.minecolonies.api.util.PortDamageSources;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.constant.ColonyConstants;
 import com.minecolonies.core.entity.pathfinding.SurfaceType;
@@ -298,7 +299,7 @@ public class PathingStuckHandler<NAV extends PathNavigation & IMinecoloniesNavig
 
         if (takeDamageOnCompleteStuck)
         {
-            entity.hurt(world.damageSources().source(DamageSourceKeys.STUCK_DAMAGE), entity.getMaxHealth() * damagePct);
+            entity.hurt(PortDamageSources.source(world, DamageSourceKeys.STUCK_DAMAGE), entity.getMaxHealth() * damagePct);
         }
 
         if (completeStuckBlockBreakRange > 0)
@@ -591,7 +592,7 @@ public class PathingStuckHandler<NAV extends PathNavigation & IMinecoloniesNavig
 
         if (breakBlocksAhead(world, entity.blockPosition(), facing) && entity.getHealth() >= entity.getMaxHealth() / 3)
         {
-            entity.hurt(world.damageSources().source(DamageSourceKeys.STUCK_DAMAGE), (float) Math.max(0.5, entity.getHealth() / 20.0));
+            entity.hurt(PortDamageSources.source(world, DamageSourceKeys.STUCK_DAMAGE), (float) Math.max(0.5, entity.getHealth() / 20.0));
         }
     }
 

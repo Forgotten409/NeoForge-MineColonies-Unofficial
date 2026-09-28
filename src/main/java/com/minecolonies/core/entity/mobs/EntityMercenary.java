@@ -1,5 +1,6 @@
 package com.minecolonies.core.entity.mobs;
 
+import com.minecolonies.api.util.PortDamageSources;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.IColonyRelated;
@@ -408,7 +409,7 @@ public class EntityMercenary extends AbstractFastMinecoloniesEntity implements N
         if (slapTimer == 0 && entityIn instanceof Player)
         {
             slapTimer = SLAP_INTERVAL;
-            entityIn.hurt(entityIn.level().damageSources().source(DamageSourceKeys.SLAP, this), 1.0f);
+            entityIn.hurt(PortDamageSources.source(entityIn.level(), DamageSourceKeys.SLAP, this), 1.0f);
             this.swing(InteractionHand.OFF_HAND);
         }
 

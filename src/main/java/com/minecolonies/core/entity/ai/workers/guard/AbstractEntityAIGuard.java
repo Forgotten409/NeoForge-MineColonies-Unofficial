@@ -1,5 +1,6 @@
 package com.minecolonies.core.entity.ai.workers.guard;
 
+import com.minecolonies.api.util.PortDamageSources;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
@@ -252,7 +253,7 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
         else
         {
             worker.swing(InteractionHand.OFF_HAND);
-            sleepingCitizen.hurt(world.damageSources().source(DamageSourceKeys.WAKEY, this.worker), 1);
+            sleepingCitizen.hurt(PortDamageSources.source(world, DamageSourceKeys.WAKEY, this.worker), 1);
             sleepingCitizen.setLastHurtByMob(worker);
             return CombatAIStates.NO_TARGET;
         }
