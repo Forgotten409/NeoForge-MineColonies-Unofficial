@@ -135,9 +135,11 @@ dependencies {
     // pełny mod TYLKO do runów dev (usuń linię, jeśli nie chcesz JM w dev):
     localRuntime files("libs/journeymap-neoforge-26.1.2-6.0.8.jar")
 
-    // Dynamic Trees: klasy API są w jarze moda (nie ma mavena dla DT 26.1.x)
-    compileOnly files("libs/dynamictrees-neoforge-26.1.2-1.8.0.jar")
-    localRuntime files("libs/dynamictrees-neoforge-26.1.2-1.8.0.jar")
+    // Dynamic Trees: klasy API są w jarze moda (brak oficjalnego mavena DT) —
+    // Modrinth maven serwuje oficjalny plik (dev-time only, NIGDY nie trafia
+    // do publishowanego jara; dla graczy DT zostaje opcjonalną relacją).
+    compileOnly "maven.modrinth:dynamictrees:1.8.0-BETA04"
+    localRuntime "maven.modrinth:dynamictrees:1.8.0-BETA04"
 
     localRuntime "maven.modrinth:iris:1.11.4+26.1-neoforge"
     localRuntime "maven.modrinth:sodium:mc26.1.2-0.9.2-neoforge"
