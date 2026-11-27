@@ -230,6 +230,75 @@ public class ModEquipmentTypes
     }
 
     /**
+     * PORT26: tool/weapon level on the MineColonies scale (wood/gold 0, stone 1, iron 2, diamond 3, netherite 4).
+     * <p>
+     * In 1.21.1 this came from the item's Tier. 26.1 items no longer expose their ToolMaterial, and the previous
+     * replacement (durability / iron sword durability) rated stone as 0, iron as 1 and diamond/netherite as 5, so a
+     * "max: stone" request accepted iron tools. Instead: digging tools carry a TOOL component whose deny-drops rule
+     * uses the material's {@code incorrect_for_*_tool} block tag, which identifies the tier exactly (also for modded
+     * tools built on vanilla materials). Items without such a rule (swords, other weapons) fall back to comparing
+     * durability against the vanilla material durabilities.
+     *
+     * @param itemStack the tool or weapon.
+     * @return the equipment level.
+     */
+    public static int toolMaterialLevel(final ItemStack itemStack)
+    {
+        final net.minecraft.world.item.component.Tool tool = itemStack.get(DataComponents.TOOL);
+        if (tool != null)
+        {
+            for (final net.minecraft.world.item.component.Tool.Rule rule : tool.rules())
+            {
+                if (rule.correctForDrops().isPresent() && !rule.correctForDrops().get())
+                {
+                    final var tag = rule.blocks().unwrapKey();
+                    if (tag.isPresent())
+                    {
+                        switch (tag.get().location().getPath())
+                        {
+                            case "incorrect_for_wooden_tool", "incorrect_for_gold_tool":
+                                return 0;
+                            case "incorrect_for_stone_tool", "incorrect_for_copper_tool":
+                                return 1;
+                            case "incorrect_for_iron_tool":
+                                return 2;
+                            case "incorrect_for_diamond_tool":
+                                return 3;
+                            case "incorrect_for_netherite_tool":
+                                return 4;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!itemStack.isDamageableItem())
+        {
+            return 4;
+        }
+        final int durability = itemStack.getMaxDamage();
+        if (durability < ToolMaterial.STONE.durability())
+        {
+            return 0;
+        }
+        if (durability < ToolMaterial.IRON.durability())
+        {
+            return 1;
+        }
+        if (durability < ToolMaterial.DIAMOND.durability())
+        {
+            return 2;
+        }
+        if (durability < ToolMaterial.NETHERITE.durability())
+        {
+            return 3;
+        }
+        return 4;
+    }
+
+    /**
      * Populate the tier registry with every item currently in the game.
      * Called once during FMLCommonSetupEvent via MineColonies.preInit.
      */
@@ -269,7 +338,8 @@ public class ModEquipmentTypes
                 // is no longer retrievable from the stack, so register by durability-based level.
                 if (dummy.has(DataComponents.WEAPON))
                 {
-                    Compatibility.registerItemTierIfAbsent(item, durabilityBasedLevel(dummy, swordRef));
+                    // PORT26: was durabilityBasedLevel(dummy, swordRef), which put iron tools at stone level
+                    Compatibility.registerItemTierIfAbsent(item, toolMaterialLevel(dummy));
                 }
                 else if (isEquippableArmor(dummy))
                 {
