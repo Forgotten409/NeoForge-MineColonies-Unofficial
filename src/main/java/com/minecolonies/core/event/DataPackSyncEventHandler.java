@@ -203,6 +203,20 @@ public class DataPackSyncEventHandler
             // PORT26: RecipesUpdatedEvent -> RecipesReceivedEvent (carries the RecipeMap now,
             // the old getRecipeManager is gone).
             IColonyManager.getInstance().getCompatibilityManager().getFurnaceRecipes().loadRecipes(event.getRecipeMap(), Minecraft.getInstance().level);
+
+            // PORT26: the equipment tier registry is filled in FMLEventHandler#onServerStarted, which never
+            // fires on a client connected to a dedicated server. Without it every tool reports level -1 on that
+            // client, so Tool#matches fails client-side and request "fulfill" buttons stay hidden/disabled even
+            // though the server accepts the item. By the time recipes arrive the item components are bound, so
+            // populate it here too (registerItemTierIfAbsent makes repeat calls and singleplayer harmless).
+            try
+            {
+                com.minecolonies.api.equipment.ModEquipmentTypes.initRegisterEquipmentTiers();
+            }
+            catch (final Exception e)
+            {
+                Log.getLogger().error("Failed to register equipment tiers on the client", e);
+            }
         }
     }
 }
