@@ -95,6 +95,10 @@ import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The renderer for blueprint.
@@ -183,6 +187,26 @@ public class BlueprintRenderer implements AutoCloseable
     private Boolean meshesBakedForPack;
 
     /**
+     * PORT26 FIX (0.7.7, preview generation lag): the in-flight background bake of this
+     * renderer's geometry (see {@link PreviewBakePool}). Null when no bake is pending.
+     */
+    private CompletableFuture<BakeData> bakeFuture;
+
+    /**
+     * PORT26 FIX (0.7.7, preview generation lag): set after a background bake of this
+     * renderer failed — subsequent inits use the synchronous fallback path, so behaviour
+     * degrades to exactly the pre-0.7.7 state instead of a permanently missing preview.
+     */
+    private boolean asyncBakeBlacklisted;
+
+    /**
+     * PORT26 FIX (0.7.7, preview generation lag): renderer-closed flag. A bake completing
+     * after {@link #close()} (guava eviction / cache clear while baking) releases its
+     * CPU-side meshes instead of leaking them.
+     */
+    private volatile boolean closed;
+
+    /**
      * A baked preview layer: the GPU-resident vertex buffer (blueprint-local coordinates —
      * the camera-relative translation is supplied per frame through the global model-view
      * stack), the index count for the shared sequential QUADS index buffer, and the vertex
@@ -237,6 +261,94 @@ public class BlueprintRenderer implements AutoCloseable
     }
 
     /**
+     * PORT26 FIX (0.7.7, preview generation lag): the pure-CPU output of a preview bake —
+     * everything the old synchronous {@code init} produced, as an immutable snapshot object
+     * so the whole bake can run on the {@link PreviewBakePool} worker and be published to
+     * the render thread through a single {@link CompletableFuture} completion (which
+     * establishes the happens-before edge for the worker's data).
+     *
+     * <p>{@code prebuiltMeshes} carries the SOLID/CUTOUT vertex emission the render thread
+     * previously did itself: the worker builds the CPU-side {@link MeshData} (blueprint-
+     * local, not yet uploaded), and the render thread only performs the GPU buffer upload
+     * when installing. Null when baking under a shader pack (meshes are deferred to the
+     * draw-time lazy rebake inside the level render — see {@code meshesBakedForPack}) or in
+     * the synchronous fallback path.</p>
+     */
+    private static final class BakeData
+    {
+        final Map<ChunkSectionLayer, List<CachedBlockQuad>> cachedQuads;
+        final Map<ChunkSectionLayer, List<CachedFluidVertex>> cachedFluidVertices;
+        final List<Entity> entities;
+        final List<BlockEntity> tileEntities;
+        final Map<BlockPos, ModelData> tileEntityModelData;
+        final Map<Object, Exception> suppressedExceptions;
+        final Map<ChunkSectionLayer, MeshData> prebuiltMeshes;
+        final boolean bakedForPack;
+
+        /**
+         * Guards exactly-once release of the prebuilt meshes between install, close and
+         * the discard-after-close hook.
+         */
+        private final AtomicBoolean meshesReleased = new AtomicBoolean();
+
+        BakeData(
+          final Map<ChunkSectionLayer, List<CachedBlockQuad>> cachedQuads,
+          final Map<ChunkSectionLayer, List<CachedFluidVertex>> cachedFluidVertices,
+          final List<Entity> entities,
+          final List<BlockEntity> tileEntities,
+          final Map<BlockPos, ModelData> tileEntityModelData,
+          final Map<Object, Exception> suppressedExceptions,
+          final Map<ChunkSectionLayer, MeshData> prebuiltMeshes,
+          final boolean bakedForPack)
+        {
+            this.cachedQuads = cachedQuads;
+            this.cachedFluidVertices = cachedFluidVertices;
+            this.entities = entities;
+            this.tileEntities = tileEntities;
+            this.tileEntityModelData = tileEntityModelData;
+            this.suppressedExceptions = suppressedExceptions;
+            this.prebuiltMeshes = prebuiltMeshes;
+            this.bakedForPack = bakedForPack;
+        }
+
+        /**
+         * Transfers ownership of the prebuilt meshes to the caller (render-thread install).
+         */
+        Map<ChunkSectionLayer, MeshData> takeMeshes()
+        {
+            meshesReleased.set(true);
+            return prebuiltMeshes;
+        }
+
+        /**
+         * Releases the prebuilt CPU-side meshes. Idempotent; callable from any thread
+         * (MeshData is CPU memory, the GPU buffer is only created later — see
+         * {@code installPrebuiltMeshes}).
+         */
+        void releaseMeshes()
+        {
+            if (prebuiltMeshes == null)
+            {
+                return;
+            }
+            if (meshesReleased.compareAndSet(false, true))
+            {
+                for (final MeshData mesh : prebuiltMeshes.values())
+                {
+                    try
+                    {
+                        mesh.close();
+                    }
+                    catch (final Exception ignored)
+                    {
+                        // already released
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Static factory utility method to handle the extraction of the values from the blueprint.
      *
      * @param blueprint The blueprint to create an instance for.
@@ -269,7 +381,160 @@ public class BlueprintRenderer implements AutoCloseable
 
     private void init(final BlueprintPreviewData previewData, final Map<Object, Exception> suppressedExceptions)
     {
+        // PORT26 FIX (0.7.7, preview generation lag): synchronous fallback (background bake
+        // failed) — bakes on the render thread exactly like pre-0.7.7 did, then installs
+        // the result immediately.
+        final BakeData data = bakeData(previewData.getBlueprint(),
+          previewData.getRenderBlocksNice(),
+          previewData.getSolidSubstitutionOverride(),
+          ShaderPackCompat.isShaderPackActive(),
+          false);
+        applyBakeData(data, suppressedExceptions);
+
+        // PORT26 FIX (preview perf): bake SOLID/CUTOUT into GPU-resident vertex buffers once
+        // — the per-frame replay then costs one dynamic-uniform write + two draw calls
+        // instead of a CPU vertex emission per quad (the ~10 fps on large previews).
+        // PORT26 FIX v5 (black preview meshes under packs): with a pack ALREADY ACTIVE the
+        // bake is deferred to the first draw instead — it must happen INSIDE the level
+        // render, where Iris's terrain vertex-format extension is active, so the baked
+        // stride matches what the draw pass interprets (see uploadOpaqueLayerMeshes).
+        // The stale meshes are released and the lazy-bake flag reset so the draw path
+        // always rebakes (a blueprint re-init under a pack must never keep drawing the
+        // previous blueprint's buffers).
+        if (data.bakedForPack)
+        {
+            closeGpuOpaqueMeshes();
+            meshesBakedForPack = null;
+        }
+        else
+        {
+            uploadOpaqueLayerMeshes();
+        }
+    }
+
+    /**
+     * PORT26 FIX (0.7.7, preview generation lag): entry point used by both the draw and the
+     * render-state-extraction paths. Returns true once the geometry of this renderer is ready
+     * to use this frame; while the background bake (see {@link PreviewBakePool}) is still
+     * running it returns false and the callers skip the preview for that frame — the preview
+     * then appears a few frames later, exactly like the blueprint-file-loading phase before
+     * it, instead of freezing the render thread for the whole tessellation of a large
+     * structure (the reported "laggy when generating the build previews, tied to block
+     * count").
+     *
+     * <p>Rotation/mirror clicks in the build tool change the {@code RenderingCacheKey}, which
+     * means a fresh renderer and a fresh bake per click — with the old synchronous init every
+     * such click was a full-structure re-tessellation freeze; now it is a background job.</p>
+     */
+    private boolean ensureBaked(final BlueprintPreviewData previewData, final Map<Object, Exception> suppressedExceptions)
+    {
+        if (cachedQuads != null)
+        {
+            return true;
+        }
+        if (crashingObjects == null)
+        {
+            // hard-disabled after a fatal draw error — never bake again
+            return false;
+        }
+        if (asyncBakeBlacklisted)
+        {
+            init(previewData, suppressedExceptions == null ? new IdentityHashMap<>() : suppressedExceptions);
+            return cachedQuads != null;
+        }
+
+        if (bakeFuture == null)
+        {
+            startAsyncBake(previewData);
+        }
+
+        final CompletableFuture<BakeData> future = bakeFuture;
+        if (future != null && future.isDone() && !future.isCancelled())
+        {
+            try
+            {
+                applyBakeData(future.get(), suppressedExceptions);
+                bakeFuture = null;
+            }
+            catch (final ExecutionException | InterruptedException e)
+            {
+                LOGGER.error("Async preview bake failed — falling back to the synchronous bake for this renderer", e);
+                bakeFuture = null;
+                asyncBakeBlacklisted = true;
+                init(previewData, suppressedExceptions == null ? new IdentityHashMap<>() : suppressedExceptions);
+            }
+            catch (final CancellationException e)
+            {
+                // bake was cancelled (renderer closed mid-bake) — nothing to fall back to,
+                // the renderer is being discarded anyway
+                bakeFuture = null;
+                return false;
+            }
+        }
+        return cachedQuads != null;
+    }
+
+    /**
+     * Kicks off the background bake. All preview-data state the bake depends on is snapshotted
+     * here on the render thread (including the shader-pack probe — the worker never touches
+     * render-system state); a later flip of the pack state is handled by the existing
+     * draw-time rebake checks ({@code meshesBakedForPack} / {@code opaqueMeshFormatDrift}).
+     */
+    private void startAsyncBake(final BlueprintPreviewData previewData)
+    {
         final Blueprint blueprint = previewData.getBlueprint();
+        if (blueprint == null)
+        {
+            return;
+        }
+        final boolean renderNice = previewData.getRenderBlocksNice();
+        final BlockState solidOverride = previewData.getSolidSubstitutionOverride();
+        final boolean packActive = ShaderPackCompat.isShaderPackActive();
+
+        bakeFuture = CompletableFuture.supplyAsync(
+          () -> bakeData(blueprint, renderNice, solidOverride, packActive, !packActive),
+          PreviewBakePool.getExecutor());
+
+        // if the renderer is closed/evicted while the bake runs, release the CPU-side
+        // meshes instead of leaking them (idempotent with the install path)
+        bakeFuture.whenComplete((data, error) -> {
+            if (closed && data != null)
+            {
+                data.releaseMeshes();
+            }
+        });
+    }
+
+    /**
+     * PORT26 FIX (0.7.7, preview generation lag): the bake itself — everything the old
+     * synchronous init did except the GPU upload. Pure CPU work (block-entity/entity
+     * instantiation, per-block tessellation through ModelBlockRenderer/FluidRenderer, and —
+     * when requested — the SOLID/CUTOUT vertex emission into CPU-side MeshData), so it is
+     * safe to run on the {@link PreviewBakePool} worker while the render thread keeps
+     * rendering: the worker never writes renderer fields (results are published through the
+     * returned object), and the only state it shares with the render thread (blockAccess'
+     * worldPos / levelSource) is atomically-written reference data whose staleness is benign
+     * — it holds the same values the synchronous bake would have snapshotted, and a
+     * levelSource swap can only involve content-equal blueprint instances (see
+     * {@link #updateBlueprint}).
+     *
+     * <p>Interrupt-aware: {@link #close()} cancels an in-flight bake; the tessellation loop
+     * checks the interrupt flag every few thousand blocks and aborts.</p>
+     *
+     * @param blueprint      the blueprint to bake.
+     * @param renderNice     renderPlaceholdersNice snapshot from the preview data.
+     * @param solidOverride  solid substitution override snapshot from the preview data.
+     * @param packActive     shader-pack state snapshot (probed on the render thread).
+     * @param prebuildMeshes build the CPU-side MeshData for SOLID/CUTOUT now (async path
+     *                       without a pack); the render thread then only uploads it.
+     * @return the baked data, ready for {@link #applyBakeData}.
+     */
+    private BakeData bakeData(final Blueprint blueprint,
+      final boolean renderNice,
+      final BlockState solidOverride,
+      final boolean packActive,
+      final boolean prebuildMeshes)
+    {
         final Minecraft mc = Minecraft.getInstance();
         final ModelBlockRenderer blockRenderer = new ModelBlockRenderer(true, true, mc.getBlockColors());
         final BlockStateModelSet modelSet = mc.getModelManager().getBlockStateModelSet();
@@ -282,7 +547,7 @@ public class BlueprintRenderer implements AutoCloseable
         final FluidRenderer.Output fluidOutput = layer -> fluidRecorders.computeIfAbsent(layer, key -> new FluidVertexRecorder(fluidSectionOrigin));
 
         final Map<BlockPos, BlockEntity> tileEntitiesMap = BlueprintUtils.instantiateTileEntities(blueprint, blockAccess, new HashMap<>());
-        entities = BlueprintUtils.instantiateEntities(blueprint, blockAccess);
+        final List<Entity> bakedEntities = BlueprintUtils.instantiateEntities(blueprint, blockAccess);
 
         // PORT26 FIX (preview placeholder blocks): keep the TE model data so the tessellator
         // can retexture dynamic models (DO compat blocks — the bulk of the byzantine style)
@@ -298,21 +563,29 @@ public class BlueprintRenderer implements AutoCloseable
                 collectedModelData.put(entry.getKey(), data);
             }
         }
-        tileEntityModelData = collectedModelData;
 
         blockAccess.setBlockEntities(tileEntitiesMap);
-        blockAccess.setEntities(entities);
-        blockAccess.setSolidSubstitutionOverride(previewData.getSolidSubstitutionOverride());
-        blockAccess.setRenderBlocksNiceOverride(previewData.getRenderBlocksNice());
+        blockAccess.setEntities(bakedEntities);
+        blockAccess.setSolidSubstitutionOverride(solidOverride);
+        blockAccess.setRenderBlocksNiceOverride(renderNice);
 
-        cachedQuads = new EnumMap<>(ChunkSectionLayer.class);
+        final Map<ChunkSectionLayer, List<CachedBlockQuad>> bakedQuads = new EnumMap<>(ChunkSectionLayer.class);
+        final Map<Object, Exception> bakeExceptions = new IdentityHashMap<>();
 
+        int processedBlocks = 0;
         for (final BlockInfo blockInfo : blueprint.getBlockInfoAsList())
         {
+            // renderer closed/evicted mid-bake — abort instead of tessellating a structure
+            // nobody is waiting for (close() interrupts the worker)
+            if ((++processedBlocks & 0xFFF) == 0 && Thread.currentThread().isInterrupted())
+            {
+                throw new CancellationException("Preview bake cancelled (renderer closed)");
+            }
+
             final BlockPos blockPos = blockInfo.getPos();
             BlockState state = blockInfo.getState();
             // specially handle blockTagSub here cuz of block entity changes
-            if (previewData.getRenderBlocksNice() && state.getBlock() == ModBlocks.blockTagSubstitution.get())
+            if (renderNice && state.getBlock() == ModBlocks.blockTagSubstitution.get())
             {
                 if (tileEntitiesMap.remove(blockPos) instanceof final BlockEntityTagSubstitution tagTE)
                 {
@@ -352,7 +625,7 @@ public class BlueprintRenderer implements AutoCloseable
                 {
                     final BlockStateModel model = modelSet.get(state);
                     blockRenderer.tesselateBlock(
-                      (x, y, z, quad, instance) -> cachedQuads
+                      (x, y, z, quad, instance) -> bakedQuads
                         .computeIfAbsent(quad.materialInfo().layer(), layer -> new ArrayList<>())
                         .add(new CachedBlockQuad(x, y, z, quad, copyQuadInstance(instance))),
                       (float) blockPos.getX(), (float) blockPos.getY(), (float) blockPos.getZ(),
@@ -361,44 +634,121 @@ public class BlueprintRenderer implements AutoCloseable
             }
             catch (final ReportedException e)
             {
-                suppressedExceptions.put(blockInfo, e);
+                bakeExceptions.put(blockInfo, e);
             }
         }
 
         blockAccess.setSolidSubstitutionOverride(null);
         blockAccess.setRenderBlocksNiceOverride(Structurize.getConfig().getClient().renderPlaceholdersNice.get());
 
-        cachedFluidVertices = new EnumMap<>(ChunkSectionLayer.class);
+        final Map<ChunkSectionLayer, List<CachedFluidVertex>> bakedFluidVertices = new EnumMap<>(ChunkSectionLayer.class);
         for (final Map.Entry<ChunkSectionLayer, FluidVertexRecorder> entry : fluidRecorders.entrySet())
         {
             if (!entry.getValue().vertices().isEmpty())
             {
-                cachedFluidVertices.put(entry.getKey(), entry.getValue().vertices());
+                bakedFluidVertices.put(entry.getKey(), entry.getValue().vertices());
             }
         }
 
-        tileEntities = new ArrayList<>(tileEntitiesMap.values());
-
-        // PORT26 FIX (preview perf): bake SOLID/CUTOUT into GPU-resident vertex buffers once
-        // — the per-frame replay then costs one dynamic-uniform write + two draw calls
-        // instead of a CPU vertex emission per quad (the ~10 fps on large previews).
-        // PORT26 FIX v4: baked with the CURRENT pack state's light floor (see
-        // meshesBakedForPack — a later flip triggers a lazy rebake at draw time).
-        // PORT26 FIX v5 (black preview meshes under packs): with a pack ALREADY ACTIVE the
-        // bake is deferred to the first draw instead — it must happen INSIDE the level
-        // render, where Iris's terrain vertex-format extension is active, so the baked
-        // stride matches what the draw pass interprets (see uploadOpaqueLayerMeshes).
-        // The stale meshes are released and the lazy-bake flag reset so the draw path
-        // always rebakes (a blueprint re-init under a pack must never keep drawing the
-        // previous blueprint's buffers).
-        if (!ShaderPackCompat.isShaderPackActive())
+        Map<ChunkSectionLayer, MeshData> prebuilt = null;
+        if (prebuildMeshes)
         {
-            uploadOpaqueLayerMeshes();
+            // CPU-side vertex emission for the two non-sorted layers — the exact work
+            // uploadOpaqueLayerMeshes did on the render thread up to and including 0.7.6,
+            // moved to the worker; only the GPU buffer upload remains on the render thread
+            // (see installPrebuiltMeshes). Baked with the no-pack render types (the async
+            // mesh path is only taken when no pack was active at request time) and light
+            // floor 0, matching the no-pack branch of uploadOpaqueLayerMeshes.
+            prebuilt = new EnumMap<>(ChunkSectionLayer.class);
+            for (final ChunkSectionLayer layer : new ChunkSectionLayer[] {ChunkSectionLayer.SOLID, ChunkSectionLayer.CUTOUT})
+            {
+                final RenderType renderType = layer == ChunkSectionLayer.SOLID
+                  ? BlueprintRenderTypes.PREVIEW_SOLID
+                  : BlueprintRenderTypes.PREVIEW_CUTOUT;
+                final MeshData mesh = buildLayerMesh(renderType,
+                  bakedQuads.get(layer),
+                  bakedFluidVertices.get(layer),
+                  0);
+                if (mesh != null)
+                {
+                    prebuilt.put(layer, mesh);
+                }
+            }
         }
-        else
+
+        return new BakeData(bakedQuads,
+          bakedFluidVertices,
+          bakedEntities,
+          new ArrayList<>(tileEntitiesMap.values()),
+          collectedModelData,
+          bakeExceptions,
+          prebuilt,
+          packActive);
+    }
+
+    /**
+     * PORT26 FIX (0.7.7, preview generation lag): installs a finished bake into this
+     * renderer. Must run on the render thread (GPU buffer upload for the prebuilt meshes);
+     * the completion of the bake future establishes the happens-before edge for the
+     * worker-built data, so the plain field writes below are safely published.
+     */
+    private void applyBakeData(final BakeData data, final Map<Object, Exception> suppressedExceptions)
+    {
+        entities = data.entities;
+        tileEntities = data.tileEntities;
+        tileEntityModelData = data.tileEntityModelData;
+        cachedQuads = data.cachedQuads;
+        cachedFluidVertices = data.cachedFluidVertices;
+
+        if (data.prebuiltMeshes != null)
         {
+            installPrebuiltMeshes(data.takeMeshes());
+        }
+        else if (data.bakedForPack)
+        {
+            // pack was active at bake time: no meshes were prebuilt — reset so the existing
+            // draw-time lazy rebake runs INSIDE the level render (Iris's terrain vertex
+            // format extension window), exactly like the old pack branch of init
             closeGpuOpaqueMeshes();
             meshesBakedForPack = null;
+        }
+
+        if (suppressedExceptions != null && !data.suppressedExceptions.isEmpty())
+        {
+            // surface the worker-collected tessellation exceptions through the caller's map
+            // (draw() reports them once and blacklists the failing blocks — before 0.7.7
+            // the exceptions collected during the extract-event init were silently dropped)
+            suppressedExceptions.putAll(data.suppressedExceptions);
+        }
+    }
+
+    /**
+     * PORT26 FIX (0.7.7, preview generation lag): uploads the worker-prebuilt CPU meshes
+     * into GPU-resident buffers. The only GPU work left on the render thread — a buffer
+     * upload of already-built vertex memory, milliseconds even for very large structures.
+     */
+    private void installPrebuiltMeshes(final Map<ChunkSectionLayer, MeshData> meshes)
+    {
+        closeGpuOpaqueMeshes();
+        // prebuilt meshes are always baked with the no-pack render types
+        meshesBakedForPack = false;
+        gpuOpaqueMeshes = new EnumMap<>(ChunkSectionLayer.class);
+        for (final ChunkSectionLayer layer : new ChunkSectionLayer[] {ChunkSectionLayer.SOLID, ChunkSectionLayer.CUTOUT})
+        {
+            final MeshData mesh = meshes.get(layer);
+            if (mesh == null)
+            {
+                continue;
+            }
+            final RenderType renderType = layer == ChunkSectionLayer.SOLID
+              ? BlueprintRenderTypes.PREVIEW_SOLID
+              : BlueprintRenderTypes.PREVIEW_CUTOUT;
+            final GpuBuffer vertexBuffer = RenderSystem.getDevice()
+              .createBuffer(() -> "structurize preview " + layer,
+                GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST,
+                mesh.vertexBuffer());
+            gpuOpaqueMeshes.put(layer, new BakedLayerMesh(vertexBuffer, mesh.drawState().indexCount(), renderType.format()));
+            mesh.close();
         }
     }
 
@@ -427,38 +777,13 @@ public class BlueprintRenderer implements AutoCloseable
             return;
         }
 
-        final PoseStack.Pose identityPose = new PoseStack().last();
         for (final ChunkSectionLayer layer : new ChunkSectionLayer[] {ChunkSectionLayer.SOLID, ChunkSectionLayer.CUTOUT})
         {
-            final List<CachedBlockQuad> quads = cachedQuads.get(layer);
-            final List<CachedFluidVertex> fluidVertices = cachedFluidVertices == null ? null : cachedFluidVertices.get(layer);
-            final boolean hasQuads = quads != null && !quads.isEmpty();
-            final boolean hasFluids = fluidVertices != null && !fluidVertices.isEmpty();
-            if (!hasQuads && !hasFluids)
-            {
-                continue;
-            }
-
             final RenderType renderType = previewMovingBlockType(layer);
-            final int vertexCount = (hasQuads ? quads.size() * 4 : 0) + (hasFluids ? fluidVertices.size() : 0);
-            final ByteBufferBuilder byteBuffer = new ByteBufferBuilder(Math.max(1024, vertexCount * renderType.format().getVertexSize()));
-            final BufferBuilder builder = new BufferBuilder(byteBuffer, renderType.mode(), renderType.format());
-            if (hasQuads)
-            {
-                for (final CachedBlockQuad cachedQuad : quads)
-                {
-                    putQuad(builder, identityPose, cachedQuad, -1, lightFloor);
-                }
-            }
-            if (hasFluids)
-            {
-                for (final CachedFluidVertex fluidVertex : fluidVertices)
-                {
-                    putFluidVertex(builder, identityPose, fluidVertex, -1, lightFloor);
-                }
-            }
-
-            final MeshData mesh = builder.build();
+            final MeshData mesh = buildLayerMesh(renderType,
+              cachedQuads.get(layer),
+              cachedFluidVertices == null ? null : cachedFluidVertices.get(layer),
+              lightFloor);
             if (mesh != null)
             {
                 // Upload once, keep the GPU copy for the lifetime of this renderer
@@ -482,6 +807,55 @@ public class BlueprintRenderer implements AutoCloseable
                 mesh.close();
             }
         }
+    }
+
+    /**
+     * PORT26 FIX (0.7.7, preview generation lag): the CPU half of the mesh bake — emits the
+     * given layer's cached quads/fluid vertices into a fresh {@link MeshData} in
+     * blueprint-local coordinates (identity pose). Deliberately free of render-system /
+     * GPU calls so the background bake can run it on the {@link PreviewBakePool} worker
+     * (the async path prebuilds both non-sorted layers this way; the render thread then
+     * only uploads, see {@link #installPrebuiltMeshes}). Also used by the synchronous
+     * {@link #uploadOpaqueLayerMeshes} (render-thread rebake path).
+     *
+     * @param renderType    the render type supplying the vertex format and mode.
+     * @param quads         the layer's cached block quads (nullable).
+     * @param fluidVertices the layer's cached fluid vertices (nullable).
+     * @param lightFloor    the shader-pack light floor (0 = none).
+     * @return the built mesh, or null when the layer has no geometry.
+     */
+    private static MeshData buildLayerMesh(final RenderType renderType, final List<CachedBlockQuad> quads, final List<CachedFluidVertex> fluidVertices, final int lightFloor)
+    {
+        final boolean hasQuads = quads != null && !quads.isEmpty();
+        final boolean hasFluids = fluidVertices != null && !fluidVertices.isEmpty();
+        if (!hasQuads && !hasFluids)
+        {
+            return null;
+        }
+
+        final int vertexCount = (hasQuads ? quads.size() * 4 : 0) + (hasFluids ? fluidVertices.size() : 0);
+        final ByteBufferBuilder byteBuffer = new ByteBufferBuilder(Math.max(1024, vertexCount * renderType.format().getVertexSize()));
+        final BufferBuilder builder = new BufferBuilder(byteBuffer, renderType.mode(), renderType.format());
+        final PoseStack.Pose identityPose = new PoseStack().last();
+        // PORT26 FIX (0.7.7, preview perf): one scratch pair for the whole emission (see
+        // putQuad — no per-quad Vector3f allocations)
+        final Vector3f scratchPos = new Vector3f();
+        final Vector3f scratchNormal = new Vector3f();
+        if (hasQuads)
+        {
+            for (final CachedBlockQuad cachedQuad : quads)
+            {
+                putQuad(builder, identityPose, cachedQuad, -1, lightFloor, scratchPos, scratchNormal);
+            }
+        }
+        if (hasFluids)
+        {
+            for (final CachedFluidVertex fluidVertex : fluidVertices)
+            {
+                putFluidVertex(builder, identityPose, fluidVertex, -1, lightFloor, scratchPos, scratchNormal);
+            }
+        }
+        return builder.build();
     }
 
     /**
@@ -679,9 +1053,16 @@ public class BlueprintRenderer implements AutoCloseable
             blockAccess.setWorldPos(anchorPos);
 
             // init
-            if (cachedQuads == null)
+            // PORT26 FIX (0.7.7, preview generation lag): the first bake of this blueprint
+            // runs on the background pool (PreviewBakePool) — while it is in flight this
+            // draw is skipped, so a large preview costs the render thread a few microseconds
+            // per frame instead of a multi-hundred-millisecond tessellation freeze. The
+            // preview pops in a few frames later, exactly like the blueprint-file-loading
+            // phase already behaves. (Failure of the background bake falls back to the old
+            // synchronous init inside ensureBaked.)
+            if (!ensureBaked(previewData, suppressedExceptions))
             {
-                init(previewData, suppressedExceptions);
+                return Map.of();
             }
 
             Profiler.get().popPush("struct_render_blocks");
@@ -768,11 +1149,17 @@ public class BlueprintRenderer implements AutoCloseable
         if (ghost)
         {
             final VertexConsumer consumer = previewBuffer(ghostType(), bufferSource);
+            // PORT26 FIX (0.7.7, preview perf): one scratch pair for the whole replay — the
+            // old putQuad allocated two Vector3f PER QUAD PER FRAME (hundreds of thousands
+            // of short-lived objects per second on large ghost/translucent previews = GC
+            // pressure and frame spikes)
+            final Vector3f scratchPos = new Vector3f();
+            final Vector3f scratchNormal = new Vector3f();
             for (final List<CachedBlockQuad> quads : cachedQuads.values())
             {
                 for (final CachedBlockQuad cachedQuad : quads)
                 {
-                    putQuad(consumer, pose, cachedQuad, alphaByte, lightFloor);
+                    putQuad(consumer, pose, cachedQuad, alphaByte, lightFloor, scratchPos, scratchNormal);
                 }
             }
             // fluids share the ghost buffer (alpha applied per-vertex like the block quads)
@@ -782,7 +1169,7 @@ public class BlueprintRenderer implements AutoCloseable
                 {
                     for (final CachedFluidVertex fluidVertex : fluidVertices)
                     {
-                        putFluidVertex(consumer, pose, fluidVertex, alphaByte, lightFloor);
+                        putFluidVertex(consumer, pose, fluidVertex, alphaByte, lightFloor, scratchPos, scratchNormal);
                     }
                 }
             }
@@ -825,23 +1212,29 @@ public class BlueprintRenderer implements AutoCloseable
             if (hasTranslucent || !solidDrawnViaMesh || !cutoutDrawnViaMesh)
             {
                 final VertexConsumer consumer = previewBuffer(previewMovingBlockType(ChunkSectionLayer.TRANSLUCENT), bufferSource);
+                // PORT26 FIX (0.7.7, preview perf): shared scratch pair, see the ghost path
+                final Vector3f scratchPos = new Vector3f();
+                final Vector3f scratchNormal = new Vector3f();
                 if (translucentQuads != null && !translucentQuads.isEmpty())
                 {
                     for (final CachedBlockQuad cachedQuad : translucentQuads)
                     {
-                        putQuad(consumer, pose, cachedQuad, -1, lightFloor);
+                        putQuad(consumer, pose, cachedQuad, -1, lightFloor, scratchPos, scratchNormal);
                     }
                 }
                 if (translucentFluids != null && !translucentFluids.isEmpty())
                 {
                     for (final CachedFluidVertex fluidVertex : translucentFluids)
                     {
-                        putFluidVertex(consumer, pose, fluidVertex, -1, lightFloor);
+                        putFluidVertex(consumer, pose, fluidVertex, -1, lightFloor, scratchPos, scratchNormal);
                     }
                 }
 
                 // fallback for layers whose baked buffer could not be created (e.g. GPU
                 // buffer allocation failed) — emit them through the CPU path like before
+                // PORT26 FIX (0.7.7, preview perf): shared scratch pair, see the ghost path
+                final Vector3f fallbackScratchPos = new Vector3f();
+                final Vector3f fallbackScratchNormal = new Vector3f();
                 for (final ChunkSectionLayer layer : new ChunkSectionLayer[] {ChunkSectionLayer.SOLID, ChunkSectionLayer.CUTOUT})
                 {
                     final boolean drawnViaMesh = layer == ChunkSectionLayer.SOLID ? solidDrawnViaMesh : cutoutDrawnViaMesh;
@@ -860,14 +1253,14 @@ public class BlueprintRenderer implements AutoCloseable
                     {
                         for (final CachedBlockQuad cachedQuad : quads)
                         {
-                            putQuad(layerConsumer, pose, cachedQuad, -1, lightFloor);
+                            putQuad(layerConsumer, pose, cachedQuad, -1, lightFloor, fallbackScratchPos, fallbackScratchNormal);
                         }
                     }
                     if (fluidVertices != null)
                     {
                         for (final CachedFluidVertex fluidVertex : fluidVertices)
                         {
-                            putFluidVertex(layerConsumer, pose, fluidVertex, -1, lightFloor);
+                            putFluidVertex(layerConsumer, pose, fluidVertex, -1, lightFloor, fallbackScratchPos, fallbackScratchNormal);
                         }
                     }
                 }
@@ -1047,12 +1440,32 @@ public class BlueprintRenderer implements AutoCloseable
         final Minecraft mc = Minecraft.getInstance();
         final BlockPos anchorPos = previewData.getPos().subtract(blueprint.getPrimaryBlockOffset());
 
+        // PORT26 FIX (0.7.7, preview perf): frustum-cull entity/block-entity extraction the
+        // same way drawUnsafe culls the block geometry. drawUnsafe already skipped
+        // off-screen previews, but this method still extracted EVERY entity and block
+        // entity render state EVERY frame — for a large preview behind the camera that was
+        // a straight per-frame FPS drop with nothing visible for it.
+        if (!renderState.cameraRenderState.cullFrustum.isVisible(
+          new net.minecraft.world.phys.AABB(0, 0, 0, blueprint.getSizeX(), blueprint.getSizeY(), blueprint.getSizeZ()).move(anchorPos)))
+        {
+            return;
+        }
+
         updateBlueprint(previewData);
         blockAccess.setWorldPos(anchorPos);
 
-        if (cachedQuads == null)
+        // PORT26 FIX (0.7.7, preview generation lag): the entity/BE lists come out of the
+        // background bake — until it finishes there is nothing to extract (and nothing to
+        // draw either, see drawUnsafe), so the preview simply pops in a few frames later.
+        if (!ensureBaked(previewData, null))
         {
-            init(previewData, new IdentityHashMap<>());
+            return;
+        }
+
+        if (entities.isEmpty() && tileEntities.isEmpty())
+        {
+            // pure block-geometry preview — skip the dispatcher preparation entirely
+            return;
         }
 
         final float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(!mc.level.tickRateManager().isFrozen());
@@ -1138,6 +1551,33 @@ public class BlueprintRenderer implements AutoCloseable
     @Override
     public void close()
     {
+        // PORT26 FIX (0.7.7, preview generation lag): a renderer can be evicted (guava
+        // expiry / cache clear / config watcher) while its background bake is still
+        // running — mark closed and cancel the bake; already-produced CPU meshes are
+        // released right here (bake already finished) or by the whenComplete hook (finishes
+        // later). The worker itself aborts on the interrupt within a few thousand blocks.
+        closed = true;
+        final CompletableFuture<BakeData> future = bakeFuture;
+        bakeFuture = null;
+        if (future != null)
+        {
+            future.cancel(true);
+            if (future.isDone() && !future.isCancelled())
+            {
+                try
+                {
+                    final BakeData data = future.getNow(null);
+                    if (data != null)
+                    {
+                        data.releaseMeshes();
+                    }
+                }
+                catch (final Exception ignored)
+                {
+                    // bake failed — nothing to release
+                }
+            }
+        }
         clearVertexBuffers();
     }
 
@@ -1259,15 +1699,15 @@ public class BlueprintRenderer implements AutoCloseable
      * @param minLight light floor under shader packs (0 = no clamping), see
      *                 {@link #PACK_PREVIEW_LIGHT_FLOOR}.
      */
-    private static void putQuad(final VertexConsumer consumer, final PoseStack.Pose pose, final CachedBlockQuad cachedQuad, final int alphaByte, final int minLight)
+    private static void putQuad(final VertexConsumer consumer, final PoseStack.Pose pose, final CachedBlockQuad cachedQuad, final int alphaByte, final int minLight,
+      final Vector3f scratchPos, final Vector3f scratchNormal)
     {
         final BakedQuad quad = cachedQuad.quad();
         final QuadInstance instance = cachedQuad.instance();
         final Vector3fc normal = quad.direction().getUnitVec3f();
         final int lightEmission = quad.materialInfo().lightEmission();
         final Matrix4f matrix = pose.pose();
-        final Vector3f transformedNormal = pose.transformNormal(normal, new Vector3f());
-        final Vector3f transformedPos = new Vector3f();
+        pose.transformNormal(normal, scratchNormal);
 
         for (int vertex = 0; vertex < 4; vertex++)
         {
@@ -1279,12 +1719,12 @@ public class BlueprintRenderer implements AutoCloseable
                 color = (color & 0x00FFFFFF) | (alphaByte << 24);
             }
             final int light = floorLight(instance.getLightCoordsWithEmission(vertex, lightEmission), minLight);
-            matrix.transformPosition(position.x() + cachedQuad.x(), position.y() + cachedQuad.y(), position.z() + cachedQuad.z(), transformedPos);
-            consumer.addVertex(transformedPos.x(), transformedPos.y(), transformedPos.z(),
+            matrix.transformPosition(position.x() + cachedQuad.x(), position.y() + cachedQuad.y(), position.z() + cachedQuad.z(), scratchPos);
+            consumer.addVertex(scratchPos.x(), scratchPos.y(), scratchPos.z(),
               color,
               UVPair.unpackU(packedUv), UVPair.unpackV(packedUv),
               instance.overlayCoords(), light,
-              transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
+              scratchNormal.x(), scratchNormal.y(), scratchNormal.z());
         }
     }
 
@@ -1293,7 +1733,8 @@ public class BlueprintRenderer implements AutoCloseable
      * {@link #putQuad}, with the same optional alpha override for ghost mode and the
      * shader-pack light floor.
      */
-    private static void putFluidVertex(final VertexConsumer consumer, final PoseStack.Pose pose, final CachedFluidVertex vertex, final int alphaByte, final int minLight)
+    private static void putFluidVertex(final VertexConsumer consumer, final PoseStack.Pose pose, final CachedFluidVertex vertex, final int alphaByte, final int minLight,
+      final Vector3f scratchPos, final Vector3f scratchNormal)
     {
         int color = vertex.color();
         if (alphaByte >= 0)
@@ -1301,13 +1742,13 @@ public class BlueprintRenderer implements AutoCloseable
             color = (color & 0x00FFFFFF) | (alphaByte << 24);
         }
         final int light = floorLight(vertex.light(), minLight);
-        final Vector3f transformedPos = pose.pose().transformPosition(vertex.x(), vertex.y(), vertex.z(), new Vector3f());
-        final Vector3f transformedNormal = pose.transformNormal(vertex.nx(), vertex.ny(), vertex.nz(), new Vector3f());
-        consumer.addVertex(transformedPos.x(), transformedPos.y(), transformedPos.z(),
+        pose.pose().transformPosition(vertex.x(), vertex.y(), vertex.z(), scratchPos);
+        pose.transformNormal(vertex.nx(), vertex.ny(), vertex.nz(), scratchNormal);
+        consumer.addVertex(scratchPos.x(), scratchPos.y(), scratchPos.z(),
           color,
           vertex.u(), vertex.v(),
           vertex.overlay(), light,
-          transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
+          scratchNormal.x(), scratchNormal.y(), scratchNormal.z());
     }
 
     /**

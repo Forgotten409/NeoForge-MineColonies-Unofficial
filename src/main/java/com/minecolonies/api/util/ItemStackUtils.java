@@ -1152,6 +1152,18 @@ public final class ItemStackUtils
      * Item#getCraftingRemainder() as an ItemStackTemplate. This restores the old
      * convenience semantics (EMPTY instead of null).
      *
+     * <p>PORT26 FIX (0.7.8): the call was previously made against the deprecated final
+     * {@code Item#getCraftingRemainder()}, which only ever returns the template configured
+     * through {@code Item.Properties#craftRemainder} — it BYPASSES the per-item override
+     * hook {@code IItemExtension#getCraftingRemainder(ItemInstance)} that NeoForge routes
+     * crafting remainders through ({@code CraftingRecipe#defaultCraftingReminder ->
+     * ItemStack#getCraftingRemainder() -> the hook}). 1.21.1's
+     * {@code ItemStack#getCraftingRemainingItem()} did call those hooks, so colony-side
+     * crafting (RecipeStorage &amp; co.) silently lost container items for every mod item
+     * that overrides them — including the build tool, which is an ingredient of 70 official
+     * datapack recipes and is supposed to be returned to the crafter. Call
+     * {@code ItemStack#getCraftingRemainder()} instead so both routes agree.</p>
+     *
      * @param stack the stack to check.
      * @return the crafting remainder stack, or {@link ItemStack#EMPTY} when there is none.
      */
@@ -1161,7 +1173,7 @@ public final class ItemStackUtils
         {
             return ItemStack.EMPTY;
         }
-        final net.minecraft.world.item.ItemStackTemplate remainder = stack.getItem().getCraftingRemainder();
+        final net.minecraft.world.item.ItemStackTemplate remainder = stack.getCraftingRemainder();
         return remainder == null ? ItemStack.EMPTY : remainder.create();
     }
 }
