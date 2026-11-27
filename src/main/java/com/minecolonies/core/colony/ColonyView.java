@@ -26,6 +26,7 @@ import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.ColonyUtils;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.Utils;
+import com.minecolonies.core.client.ColonyViewClientHelper;
 import com.minecolonies.core.client.render.worldevent.ColonyBlueprintRenderer;
 import com.minecolonies.core.colony.buildings.modules.BuildingModules;
 import com.minecolonies.core.colony.buildings.modules.SettingsModule;
@@ -45,7 +46,6 @@ import com.minecolonies.core.quests.QuestManager;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -731,8 +731,8 @@ public final class ColonyView implements IColonyView
         if (isNewSubscription
               && StructurePacks.hasPack(this.style)
               && RenderingCache.getOrCreateBlueprintPreviewData("blueprint").getBlueprint() == null
-              && Minecraft.getInstance().player != null
-              && this.isCoordInColony(getWorld(), Minecraft.getInstance().player.blockPosition())
+              && ColonyViewClientHelper.getLocalPlayerPos() != null // PORT26: client-only calls moved out, see ColonyViewClientHelper
+              && this.isCoordInColony(getWorld(), ColonyViewClientHelper.getLocalPlayerPos())
         )
         {
             StructurePacks.selectedPack = StructurePacks.getStructurePack(this.style);
@@ -761,7 +761,7 @@ public final class ColonyView implements IColonyView
             colonyClaimData.put(pos, chunkClaimData);
         }
 
-        if (Minecraft.getInstance().getSingleplayerServer() == null)
+        if (ColonyViewClientHelper.isRemoteServer())
         {
             IColonyManager.getInstance().addClaimData(this, colonyClaimData);
         }
@@ -1052,7 +1052,8 @@ public final class ColonyView implements IColonyView
     @Override
     public Level getWorld()
     {
-        final Level level = Minecraft.getInstance().level;
+        // PORT26: client-only call moved out so a dedicated server can load this class (see ColonyViewClientHelper)
+        final Level level = ColonyViewClientHelper.getClientLevel();
         if (level == null || !level.dimension().equals(world))
         {
             throw new IllegalStateException("Cannot get colony view level");
